@@ -13,7 +13,6 @@ from .compiler import matplotlib_rc
 from .figures import arrow, box, panel, styled_shape, token_row
 from .theme import Theme
 
-
 BOARD_SIZE = (16, 9)
 
 
@@ -75,8 +74,17 @@ def foundations(theme: Theme):
 
     shapes = fig.add_subplot(grid[1, 0]); shapes.set(xlim=(0, 10), ylim=(0, 7)); shapes.axis("off")
     _label(shapes, theme, "Shape vocabulary")
-    specimens = [("module", "Module"), ("focal_module", "Focal"), ("tag", "TAG"),
-                 ("encoder", "Encoder"), ("dataset", "Dataset")]
+    if theme.meta.name == "hoffman":
+        specimens = [
+            ("widget", "Widget"),
+            ("widget_focal", "Focal widget"),
+            ("graph_node", "Graph node"),
+            ("graph_node_focal", "Focal node"),
+            ("dataset", "Dataset"),
+        ]
+    else:
+        specimens = [("module", "Module"), ("focal_module", "Focal"), ("tag", "TAG"),
+                     ("encoder", "Encoder"), ("dataset", "Dataset")]
     for i, (style, name) in enumerate(specimens):
         if style in theme.shape.vocabulary:
             x, y = (0.3 + (i % 2) * 4.8, 4.7 - (i // 2) * 2.0)
@@ -89,12 +97,37 @@ def foundations(theme: Theme):
     widgets = fig.add_subplot(grid[1, 1]); widgets.set(xlim=(0, 10), ylim=(0, 7)); widgets.axis("off")
     _label(widgets, theme, "Widgets & panel patterns")
     panel(widgets, theme, (0.1, 0.3, 9.7, 6.2), "Experiment summary", label="a")
-    box(widgets, theme, (0.7, 3.7, 3.7, 1.4), title="Policy checkpoint", detail="best validation score")
-    styled_shape(widgets, theme, (5.0, 4.0, 1.7, 0.65), style="tag", title="SELECTED")
-    for i, role in enumerate(("data_primary", "data_secondary", "data_tertiary")):
-        styled_shape(widgets, theme, (0.8, 2.55 - i * 0.72, 0.38, 0.38), style="token", role=role)
-        widgets.text(1.45, 2.74 - i * 0.72, ("Primary result", "Condition", "Task family")[i], va="center", fontsize=7.2)
-    styled_shape(widgets, theme, (5.0, 1.2, 3.3, 0.85), style="focal_module", title="Primary action")
+    if theme.meta.name == "hoffman":
+        styled_shape(widgets, theme, (0.7, 3.75, 3.0, 1.05), style="widget",
+                     title="Observation widget")
+        styled_shape(widgets, theme, (0.7, 1.35, 3.0, 1.05), style="widget_focal",
+                     title="Action widget")
+        styled_shape(widgets, theme, (4.25, 1.0, 4.85, 4.0), style="graph_group")
+        styled_shape(widgets, theme, (4.75, 3.35, 1.45, 0.85), style="graph_node",
+                     title="Encode")
+        styled_shape(widgets, theme, (7.15, 3.35, 1.45, 0.85),
+                     style="graph_node_focal", title="Predict")
+        styled_shape(widgets, theme, (6.33, 3.61, 0.30, 0.30), style="graph_port",
+                     role="data_primary")
+        styled_shape(widgets, theme, (6.72, 3.61, 0.30, 0.30), style="graph_port",
+                     role="data_quaternary")
+        arrow(widgets, theme, (6.62, 3.76), (6.72, 3.76), style="graph_flow")
+        arrow(widgets, theme, (7.88, 3.28), (5.48, 2.30), style="graph_feedback")
+        widgets.text(4.72, 1.45, "ports + solid flow + dashed feedback", fontsize=6.6,
+                     color=theme.color_value("text_secondary"))
+    else:
+        box(widgets, theme, (0.7, 3.7, 3.7, 1.4), title="Policy checkpoint",
+            detail="best validation score")
+        styled_shape(widgets, theme, (5.0, 4.0, 1.7, 0.65), style="tag",
+                     title="SELECTED")
+        for i, role in enumerate(("data_primary", "data_secondary", "data_tertiary")):
+            styled_shape(widgets, theme, (0.8, 2.55 - i * 0.72, 0.38, 0.38),
+                         style="token", role=role)
+            widgets.text(1.45, 2.74 - i * 0.72,
+                         ("Primary result", "Condition", "Task family")[i],
+                         va="center", fontsize=7.2)
+        styled_shape(widgets, theme, (5.0, 1.2, 3.3, 0.85),
+                     style="focal_module", title="Primary action")
 
     rules = fig.add_subplot(grid[1, 2]); rules.axis("off"); _label(rules, theme, "Cross-media rules")
     if theme.meta.name == "intact":
@@ -102,6 +135,11 @@ def foundations(theme: Theme):
                      "3  Domain chips remain stable everywhere", "4  Pale blue and blush separate systems",
                      "5  Math capsules sit inside strong enclosures", "6  Dark media trade density for atmosphere",
                      "7  Orbit means rollout; arrows mean control", "8  Metrics anchor the presentation identity"]
+    elif theme.meta.name == "hoffman":
+        rule_text = ["1  Rounded rails are integrated with panels", "2  Headers span the full panel width",
+                     "3  Widgets name observation and action roles", "4  Ports expose graph interfaces",
+                     "5  Solid arrows carry primary flow", "6  Dashed arrows mark feedback",
+                     "7  Orange outlines the focal computation", "8  Labels and shape reinforce every hue"]
     elif theme.meta.name == "rolling-diffusion":
         rule_text = ["1  Gray occupies most visual area", "2  Orange marks focal events and paths",
                      "3  Muted blue supports state structure", "4  Burgundy is reserved for action history",
@@ -233,7 +271,8 @@ def website(theme: Theme):
     for i, item in enumerate(("Method", "Results", "Video", "Paper")): ax.text(10.2 + i * 1.15, 8.15, item, fontsize=7, color=theme.color_value("text_secondary"))
     styled_shape(ax, theme, (14.6, 7.82, 0.75, 0.55), style="tag", title="CODE")
     ax.text(0.75, 6.85, "Semantic control,\nrolled into the future.", fontsize=24, fontweight="bold", va="top", linespacing=0.96, color=theme.color_value("text_primary"))
-    ax.text(0.78, 4.85, "A project-site composition that shares the paper's semantic colors,\ntechnical modules, clipped rails, and temporal flow.", fontsize=8.5, color=theme.color_value("text_secondary"), linespacing=1.4)
+    rail_description = "integrated rails" if theme.meta.name == "hoffman" else "clipped rails"
+    ax.text(0.78, 4.85, f"A project-site composition that shares the paper's semantic colors,\ntechnical modules, {rail_description}, and temporal flow.", fontsize=8.5, color=theme.color_value("text_secondary"), linespacing=1.4)
     styled_shape(ax, theme, (0.8, 3.85, 2.05, 0.72), style="focal_module", title="Read the paper"); styled_shape(ax, theme, (3.05, 3.85, 1.65, 0.72), style="module", title="Watch video")
     panel(ax, theme, (7.25, 3.55, 7.7, 3.95), "Interactive method overview"); box(ax, theme, (7.85, 5.25, 1.7, 0.85), title="Task"); styled_shape(ax, theme, (10.25, 4.8, 1.2, 1.7), style="encoder", title="Policy"); box(ax, theme, (12.2, 5.25, 1.9, 0.85), title="Action"); arrow(ax, theme, (9.6, 5.65), (10.18, 5.65), role="data_tertiary"); arrow(ax, theme, (11.5, 5.65), (12.12, 5.65), role="data_primary"); token_row(ax, theme, (8.2, 4.05), ["t−2", "t−1", "t", "t+1", "t+2"], roles=("negative", "negative", "highlight", "positive", "positive"), width=0.68, height=0.48, gap=0.15)
     for i, (metric, value, role) in enumerate((("Success", "92%", "data_secondary"), ("Latency", "18 ms", "data_primary"), ("Tasks", "12", "data_tertiary"))):

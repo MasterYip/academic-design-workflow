@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, Literal
 
 import yaml
@@ -92,7 +92,7 @@ class ShadowStyle(StrictModel):
 class ShapeStyle(StrictModel):
     geometry: Literal[
         "rectangle", "rounded_rectangle", "capsule", "circle", "line",
-        "trapezoid", "cylinder", "clipped_header",
+        "trapezoid", "cylinder", "clipped_header", "rounded_top_rectangle",
     ]
     fill: str
     fill_opacity: float = Field(default=1, ge=0, le=1)
@@ -182,7 +182,7 @@ class Theme(StrictModel):
     variants: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def references_exist(self) -> "Theme":
+    def references_exist(self) -> Theme:
         roles = set(self.color.roles)
         referenced = []
         for stroke in self.shape.strokes.values():
@@ -202,7 +202,7 @@ class Theme(StrictModel):
         except KeyError as exc:
             raise KeyError(f"unknown theme color role: {role}") from exc
 
-    def for_variant(self, name: str) -> "Theme":
+    def for_variant(self, name: str) -> Theme:
         """Return a fully validated media variant, or this theme when absent."""
         override = self.variants.get(name)
         if override is None:
@@ -233,7 +233,7 @@ def _load_document(path: Path, seen: set[Path]) -> dict[str, Any]:
     with resolved.open("r", encoding="utf-8") as stream:
         raw = yaml.safe_load(stream)
     if not isinstance(raw, dict):
-        raise ValueError("theme document must contain a YAML mapping")
+        raise TypeError("theme document must contain a YAML mapping")
     parent = raw.pop("extends", None)
     if parent is None:
         return raw

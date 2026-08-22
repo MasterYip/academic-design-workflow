@@ -8,7 +8,15 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.patches import Ellipse, FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle
+from matplotlib.patches import (
+    Ellipse,
+    FancyArrowPatch,
+    FancyBboxPatch,
+    PathPatch,
+    Polygon,
+    Rectangle,
+)
+from matplotlib.path import Path
 
 from .compiler import matplotlib_rc
 from .theme import ShapeStyle, Theme
@@ -99,8 +107,15 @@ def styled_shape(
     fill_role = role or token.fill
     face = theme.color_value(fill_role)
     edge = theme.color_value(token.stroke.color)
-    common = dict(facecolor=face, edgecolor=edge, linewidth=token.stroke.width_pt,
-                  alpha=token.fill_opacity, zorder=zorder)
+    common = {
+        "facecolor": face,
+        "edgecolor": edge,
+        "linewidth": token.stroke.width_pt,
+        "linestyle": token.stroke.style,
+        "joinstyle": token.stroke.join,
+        "alpha": token.fill_opacity,
+        "zorder": zorder,
+    }
     if token.geometry in {"rounded_rectangle", "capsule"}:
         radius = height / 2 if token.geometry == "capsule" else token.radius
         patch = FancyBboxPatch((x, y), width, height,
@@ -113,6 +128,31 @@ def styled_shape(
         clip = min(width * 0.10, height * 0.55)
         patch = Polygon([(x, y), (x + width, y), (x + width - clip, y + height),
                          (x, y + height)], closed=True, **common)
+    elif token.geometry == "rounded_top_rectangle":
+        radius = min(token.radius, width / 2, height)
+        vertices = [
+            (x, y),
+            (x + width, y),
+            (x + width, y + height - radius),
+            (x + width, y + height),
+            (x + width - radius, y + height),
+            (x + radius, y + height),
+            (x, y + height),
+            (x, y + height - radius),
+            (x, y),
+        ]
+        codes = [
+            Path.MOVETO,
+            Path.LINETO,
+            Path.LINETO,
+            Path.CURVE3,
+            Path.CURVE3,
+            Path.LINETO,
+            Path.CURVE3,
+            Path.CURVE3,
+            Path.CLOSEPOLY,
+        ]
+        patch = PathPatch(Path(vertices, codes), **common)
     elif token.geometry == "cylinder":
         patch = Rectangle((x, y + height * 0.12), width, height * 0.76, **common)
         ax.add_patch(patch)
@@ -141,7 +181,10 @@ def panel(
 ) -> None:
     """Draw a technical panel with a theme-specific header rail."""
     x, y, width, height = bounds
-    styled_shape(ax, theme, bounds, style="field", zorder=0)
+    container_style = (
+        "panel_container" if "panel_container" in theme.shape.vocabulary else "field"
+    )
+    styled_shape(ax, theme, bounds, style=container_style, zorder=0)
     header_height = min(0.55, height * 0.17)
     header_style = "panel_header" if "panel_header" in theme.shape.vocabulary else "tag"
     styled_shape(ax, theme, (x, y + height - header_height, width, header_height),

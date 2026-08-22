@@ -3,7 +3,6 @@ from pathlib import Path
 from academic_design_workflow.compiler import compile_theme, css_variables, matplotlib_rc
 from academic_design_workflow.theme import load_theme
 
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -23,6 +22,27 @@ def test_reference_theme_inherits_and_overrides_total_style():
     palette = [token.value for token in theme.color.roles.values()]
     palette += theme.color.categorical + theme.color.sequential + theme.color.diverging
     assert "#7D2EC5" not in palette
+
+
+def test_hoffman_theme_exposes_semantic_panel_widget_and_graph_patterns():
+    theme = load_theme(ROOT / "themes" / "hoffman.yaml")
+
+    assert theme.meta.name == "hoffman"
+    assert theme.shape.vocabulary["panel_header"].geometry == "rounded_top_rectangle"
+    assert {
+        "panel_container",
+        "widget",
+        "widget_focal",
+        "graph_group",
+        "graph_node",
+        "graph_node_focal",
+        "graph_port",
+    } <= set(theme.shape.vocabulary)
+    assert {"graph_flow", "graph_feedback", "graph_guide"} <= set(theme.shape.strokes)
+    assert theme.shape.vocabulary["graph_node_focal"].stroke.color == "data_quaternary"
+
+    source = load_theme(ROOT / "themes" / "rolling-diffusion.yaml")
+    assert source.shape.vocabulary["panel_header"].geometry == "clipped_header"
 
 
 def test_intact_theme_resolves_light_paper_and_dark_brand_variants():

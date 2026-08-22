@@ -1,0 +1,100 @@
+extends: rolling-diffusion.yaml
+
+meta:
+  name: hoffman
+  version: 1
+  description: Restrained Hoffman technical storytelling with integrated panel rails, compact semantic widgets, and an explicit graph grammar.
+  intent:
+    - Organize Hoffman system explanations into calm, clearly bounded stages with strong reading order.
+    - Use full-width charcoal title rails with rounded top corners as an integrated part of each panel.
+    - Distinguish observations, actions, latent state, ports, and focal computation through reusable semantic patterns.
+  avoid:
+    - Clipped or trapezoidal panel title rails, detached title badges, and ornamental header geometry.
+    - Reproducing any reference diagram's scientific content, wording, or composition.
+    - Encoding important graph roles with hue alone or inventing local colors outside theme tokens.
+
+color:
+  roles:
+    surface_subtle: {value: "#ECECEA", usage: "Soft panel bodies, grouped graph regions, and inactive widgets"}
+    surface_strong: {value: "#5A5A57", usage: "Integrated full-width panel title rails and chapter headers", on_color: text_inverse}
+    border: {value: "#B7B8B4", usage: "Panel boundaries, widget dividers, graph-node outlines, and quiet guides"}
+    connector: {value: "#2F2F2D", usage: "Primary graph flow, causal arrows, and feedback paths"}
+
+shape:
+  strokes:
+    graph_flow: {color: connector, width_pt: 0.95, style: solid, cap: round, join: round}
+    graph_feedback: {color: connector, width_pt: 0.82, style: dashed, cap: round, join: round}
+    graph_guide: {color: border, width_pt: 0.62, style: dotted, cap: round, join: round}
+  vocabulary:
+    panel_container:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 0.78
+      stroke: {color: border, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.18
+      padding: [0.20, 0.26]
+      shadow: none
+      emphasis: quiet
+    panel_header:
+      geometry: rounded_top_rectangle
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: butt, join: round}
+      radius: 0.18
+      padding: [0.08, 0.16]
+      shadow: none
+      emphasis: strong
+    widget:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.72, style: solid, cap: round, join: round}
+      radius: 0.07
+      padding: [0.10, 0.14]
+      shadow: none
+      emphasis: normal
+    widget_focal:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_quaternary, width_pt: 1.15, style: solid, cap: round, join: round}
+      radius: 0.07
+      padding: [0.10, 0.14]
+      shadow: none
+      emphasis: strong
+    graph_group:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 0.72
+      stroke: {color: border, width_pt: 0.68, style: solid, cap: round, join: round}
+      radius: 0.10
+      padding: [0.14, 0.18]
+      shadow: none
+      emphasis: quiet
+    graph_node:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.82, style: solid, cap: round, join: round}
+      radius: 0.055
+      padding: [0.10, 0.14]
+      shadow: none
+      emphasis: normal
+    graph_node_focal:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_quaternary, width_pt: 1.25, style: solid, cap: round, join: round}
+      radius: 0.065
+      padding: [0.10, 0.16]
+      shadow: lifted
+      emphasis: strong
+    graph_port:
+      geometry: circle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.72, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.03, 0.03]
+      shadow: none
+      emphasis: normal
