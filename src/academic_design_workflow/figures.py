@@ -8,7 +8,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+from matplotlib.patches import Ellipse, FancyArrowPatch, FancyBboxPatch, Polygon, Rectangle
 
 from .compiler import matplotlib_rc
 from .theme import ShapeStyle, Theme
@@ -83,6 +83,75 @@ def box(
     return patch
 
 
+def styled_shape(
+    ax: Axes,
+    theme: Theme,
+    bounds: tuple[float, float, float, float],
+    *,
+    style: str,
+    title: str = "",
+    role: str | None = None,
+    zorder: int = 2,
+):
+    """Draw the theme's shape vocabulary, including technical diagram motifs."""
+    x, y, width, height = bounds
+    token = _shape(theme, style)
+    fill_role = role or token.fill
+    face = theme.color_value(fill_role)
+    edge = theme.color_value(token.stroke.color)
+    common = dict(facecolor=face, edgecolor=edge, linewidth=token.stroke.width_pt,
+                  alpha=token.fill_opacity, zorder=zorder)
+    if token.geometry in {"rounded_rectangle", "capsule"}:
+        radius = height / 2 if token.geometry == "capsule" else token.radius
+        patch = FancyBboxPatch((x, y), width, height,
+                               boxstyle=f"round,pad=0,rounding_size={radius}", **common)
+    elif token.geometry == "trapezoid":
+        inset = min(width * 0.22, height * 0.28)
+        patch = Polygon([(x, y), (x + width, y + inset), (x + width, y + height - inset),
+                         (x, y + height)], closed=True, **common)
+    elif token.geometry == "clipped_header":
+        clip = min(width * 0.10, height * 0.55)
+        patch = Polygon([(x, y), (x + width, y), (x + width - clip, y + height),
+                         (x, y + height)], closed=True, **common)
+    elif token.geometry == "cylinder":
+        patch = Rectangle((x, y + height * 0.12), width, height * 0.76, **common)
+        ax.add_patch(patch)
+        ax.add_patch(Ellipse((x + width / 2, y + height * 0.88), width, height * 0.24, **common))
+        ax.add_patch(Ellipse((x + width / 2, y + height * 0.12), width, height * 0.24, **common))
+    elif token.geometry == "circle":
+        patch = Ellipse((x + width / 2, y + height / 2), width, height, **common)
+    else:
+        patch = Rectangle((x, y), width, height, **common)
+    ax.add_patch(patch)
+    if title:
+        text_color = "text_inverse" if fill_role == "surface_strong" else "text_primary"
+        ax.text(x + width / 2, y + height / 2, title, ha="center", va="center",
+                fontsize=theme.typography.roles_pt["caption"], fontweight="bold",
+                color=theme.color_value(text_color), zorder=zorder + 2)
+    return patch
+
+
+def panel(
+    ax: Axes,
+    theme: Theme,
+    bounds: tuple[float, float, float, float],
+    title: str,
+    *,
+    label: str = "",
+) -> None:
+    """Draw a technical panel with a theme-specific header rail."""
+    x, y, width, height = bounds
+    styled_shape(ax, theme, bounds, style="field", zorder=0)
+    header_height = min(0.55, height * 0.17)
+    header_style = "panel_header" if "panel_header" in theme.shape.vocabulary else "tag"
+    styled_shape(ax, theme, (x, y + height - header_height, width, header_height),
+                 style=header_style, zorder=1)
+    prefix = f"({label}) " if label else ""
+    ax.text(x + 0.16, y + height - header_height / 2, prefix + title,
+            ha="left", va="center", color=theme.color_value("text_inverse"),
+            fontsize=theme.typography.roles_pt["section_title"], fontweight="bold", zorder=3)
+
+
 def arrow(
     ax: Axes,
     theme: Theme,
@@ -145,4 +214,3 @@ def save_vector_bundle(fig: Figure, stem: str) -> list[str]:
         fig.savefig(path, dpi=dpi, bbox_inches="tight", pad_inches=0.02)
         outputs.append(path)
     return outputs
-

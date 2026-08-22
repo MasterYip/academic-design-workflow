@@ -3,6 +3,15 @@
 The theme is a versioned contract, not a loose collection of colors. Every
 downstream renderer validates the same YAML document and consumes semantic tokens.
 
+A theme may declare `extends: another-theme.yaml`. Mappings merge recursively;
+lists and scalar values replace their parent values. Cycles are rejected, and the
+fully resolved document must satisfy the complete schema.
+
+`variants` provides validated medium-specific overrides such as `paper`, `web`,
+and `video`. Semantic role names must remain stable; variants change surface,
+contrast, density, or motion treatment. The compiler emits separate JSON, CSS,
+and Matplotlib artifacts for every declared variant.
+
 | System | Controls | Cross-media invariant |
 |---|---|---|
 | `meta` | intent, anti-goals, version | why the system looks and behaves this way |
@@ -32,4 +41,3 @@ corner radius, padding, shadow, and emphasis into reusable objects.
 `adw compile` emits the validated theme as JSON, all tokens as CSS variables, and
 Matplotlib `rcParams`. Python schematics bind directly to the validated model.
 Web and video packages consume compiled tokens rather than re-declaring a style.
-

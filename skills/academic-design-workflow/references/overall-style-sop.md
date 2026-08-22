@@ -23,14 +23,20 @@ Complete all theme systems; a palette alone is not a complete theme.
 - Web: breakpoints, focus behavior, component radii, and state transitions.
 - Motion/video: transition families, timing, easing, safe area, and captions.
 
+When a work has genuinely different paper and presentation identities, define
+validated `paper`, `web`, or `video` variants under one theme. Keep semantic role
+names stable across variants and compile every variant before downstream work.
+
 Opacity is structural: low alpha for contextual regions and uncertainty, medium
 alpha for supporting layers, and solid color for focal marks. Do not lower text
 opacity to make it quiet; use a readable secondary text color.
 
 ## Proof and version
 
-Render palette roles, typography, shapes, connectors, a plot, a schematic, and
-representative web/video frames. Evaluate at delivery size and in grayscale.
+Render the complete style-board suite: semantic palette and opacity, typography,
+shape and connector grammar, widgets/panels, multiple scientific chart families,
+a representative framework, project-site UI, and video scenes/motion timeline.
+Use separate legible boards plus a contact-sheet overview rather than compressing
+the whole system into one unreadable canvas. Evaluate at delivery size and in grayscale.
 Revise the theme instead of patching the proof. Validate YAML, compile all token
 targets, and increment the theme version for visual breaking changes.
-

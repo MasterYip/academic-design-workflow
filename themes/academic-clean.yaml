@@ -139,6 +139,33 @@ shape:
       padding: [0.05, 0.12]
       shadow: none
       emphasis: quiet
+    panel_header:
+      geometry: clipped_header
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: butt, join: bevel}
+      radius: 0.04
+      padding: [0.08, 0.14]
+      shadow: none
+      emphasis: strong
+    encoder:
+      geometry: trapezoid
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: text_primary, width_pt: 0.80, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
+    dataset:
+      geometry: cylinder
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: text_primary, width_pt: 0.70, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
   arrowheads:
     standard: {style: "-|>", scale: 8.0}
     subtle: {style: "->", scale: 7.0}
@@ -238,4 +265,3 @@ video:
     line_height: 1.25
     background: surface_strong
     background_opacity: 0.86
-

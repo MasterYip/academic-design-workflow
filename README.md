@@ -11,11 +11,25 @@ spacing, layout, chart encoding, web behavior, and motion.
 python -m pip install -e .
 adw validate themes/academic-clean.yaml
 adw compile themes/academic-clean.yaml --output generated/academic-clean
-python examples/paper-figures/styleboard.py
+adw styleboard themes/rolling-diffusion.yaml --output generated/styleboards/rolling-diffusion
 ```
 
 The compiler creates `theme.json`, `theme.css`, and `matplotlib.json`. The
-example creates SVG, PDF, and PNG previews using the same validated theme.
+style-board command creates five coordinated SVG/PDF/PNG boards—foundations,
+charts, paper framework, website UI, and video composition—plus an overview.
+
+Included themes:
+
+- `academic-clean`: restrained, warm, publication-first technical clarity.
+- `rolling-diffusion`: extracted from user-provided rolling-diffusion figures;
+  charcoal clipped panels, neutral machinery, and vivid semantic signal colors.
+- `intact`: extracted from user-provided INTACT references; pale blue/blush,
+  math-forward paper diagrams plus a dark blue/white/coral presentation identity.
+
+Themes may use `extends` to inherit a complete design contract and override only
+intentional differences. The resolved theme is always fully validated.
+Themes may also define `paper`, `web`, and `video` variants. Compilation emits a
+JSON, CSS, and Matplotlib artifact for every variant alongside the base tokens.
 
 ## Principles
 
@@ -27,4 +41,3 @@ example creates SVG, PDF, and PNG previews using the same validated theme.
 
 The Codex skill is in `skills/academic-design-workflow/` and contains the SOP
 for choosing and reviewing each workflow mode.
-

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from copy import deepcopy
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -89,7 +90,10 @@ class ShadowStyle(StrictModel):
 
 
 class ShapeStyle(StrictModel):
-    geometry: Literal["rectangle", "rounded_rectangle", "capsule", "circle", "line"]
+    geometry: Literal[
+        "rectangle", "rounded_rectangle", "capsule", "circle", "line",
+        "trapezoid", "cylinder", "clipped_header",
+    ]
     fill: str
     fill_opacity: float = Field(default=1, ge=0, le=1)
     stroke: StrokeStyle
@@ -175,6 +179,7 @@ class Theme(StrictModel):
     web: WebSystem
     motion: MotionSystem
     video: VideoSystem
+    variants: dict[str, dict[str, Any]] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def references_exist(self) -> "Theme":
@@ -197,9 +202,45 @@ class Theme(StrictModel):
         except KeyError as exc:
             raise KeyError(f"unknown theme color role: {role}") from exc
 
+    def for_variant(self, name: str) -> "Theme":
+        """Return a fully validated media variant, or this theme when absent."""
+        override = self.variants.get(name)
+        if override is None:
+            return self
+        base = self.model_dump(mode="python")
+        base.pop("variants", None)
+        resolved = _deep_merge(base, override)
+        resolved["variants"] = self.variants
+        return Theme.model_validate(resolved)
+
+
+def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """Merge mappings recursively while replacing lists and scalar values."""
+    result = deepcopy(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(result.get(key), dict):
+            result[key] = _deep_merge(result[key], value)
+        else:
+            result[key] = deepcopy(value)
+    return result
+
+
+def _load_document(path: Path, seen: set[Path]) -> dict[str, Any]:
+    resolved = path.resolve()
+    if resolved in seen:
+        raise ValueError(f"cyclic theme inheritance involving {resolved}")
+    seen.add(resolved)
+    with resolved.open("r", encoding="utf-8") as stream:
+        raw = yaml.safe_load(stream)
+    if not isinstance(raw, dict):
+        raise ValueError("theme document must contain a YAML mapping")
+    parent = raw.pop("extends", None)
+    if parent is None:
+        return raw
+    parent_path = (resolved.parent / str(parent)).resolve()
+    return _deep_merge(_load_document(parent_path, seen), raw)
+
 
 def load_theme(path: str | Path) -> Theme:
-    """Load and validate a YAML theme."""
-    with Path(path).open("r", encoding="utf-8") as stream:
-        raw = yaml.safe_load(stream)
-    return Theme.model_validate(raw)
+    """Load, resolve optional ``extends``, and validate a YAML theme."""
+    return Theme.model_validate(_load_document(Path(path), set()))

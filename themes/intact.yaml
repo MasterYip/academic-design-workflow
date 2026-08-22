@@ -1,0 +1,255 @@
+extends: academic-clean.yaml
+
+meta:
+  name: intact
+  version: 1
+  description: Structured multi-domain intelligence with pale technical enclosures for papers and a cinematic navy, blue, white, and coral identity for presentation media.
+  intent:
+    - Make shared representation, task-specific intent, forward prediction, and direct control legible as distinct conceptual layers.
+    - Use blue as shared/world structure and coral as intent-to-action control, with teal, purple, and orange reserved for domains or intent families.
+    - Pair dense mathematical paper diagrams with a sparse, metric-led dark brand identity.
+  avoid:
+    - Reproducing the reference figure's exact scientific content, wordmark, institutional marks, or arrangement.
+    - Mixing pale paper panels and dark presentation surfaces within one artifact without an explicit transition.
+    - Using coral for neutral structure or blue for every accent until hierarchy collapses.
+    - Decorative particle fields behind small technical text or data plots.
+
+color:
+  roles:
+    canvas: {value: "#F7FAFC", usage: "Light technical paper ground"}
+    surface: {value: "#FFFFFF", usage: "Cards, equations, observation frames, and result surfaces"}
+    surface_subtle: {value: "#E9F3F9", usage: "Shared encoder and world-model regions"}
+    surface_strong: {value: "#263644", usage: "Uppercase technical headings and dark label rails", on_color: text_inverse}
+    text_primary: {value: "#263644", usage: "Navy-charcoal titles, equations, and object labels"}
+    text_secondary: {value: "#667788", usage: "Supporting descriptions, indices, and captions"}
+    text_inverse: {value: "#FFFFFF", usage: "Text on navy, blue, coral, or teal fills"}
+    border: {value: "#AEBCC6", usage: "Rounded system boundaries and dashed dataset groups"}
+    connector: {value: "#2C7FBD", usage: "Shared latent, forward-model, and world-rollout flow"}
+    data_primary: {value: "#2C7FBD", usage: "Shared representation, world model, and blue domain"}
+    data_secondary: {value: "#158A78", usage: "Goal intent, detached targets, and green domain"}
+    data_tertiary: {value: "#7650A4", usage: "Purple task/domain identity"}
+    data_quaternary: {value: "#EF7B2D", usage: "Orange task/domain identity and local physical intent"}
+    highlight: {value: "#E95B58", usage: "INTACT predictor, action, direct control, and focal metrics"}
+    positive: {value: "#4BA98D", usage: "Deployable goal intent and verified rollout"}
+    warning: {value: "#D96332", usage: "Attached physical intent and training-only paths"}
+    negative: {value: "#C84649", usage: "Prediction error, regularization, and failure states"}
+  categorical: ["#2C7FBD", "#E95B58", "#158A78", "#7650A4", "#EF7B2D", "#667788"]
+  sequential: ["#EDF5FA", "#CFE4F1", "#9FC9E1", "#63A6CD", "#2C7FBD"]
+  diverging: ["#C84649", "#E99A91", "#F7F7F4", "#80C3B4", "#158A78"]
+  opacity: {invisible: 0.0, ghost: 0.06, subtle: 0.14, muted: 0.30, supporting: 0.66, solid: 1.0}
+
+typography:
+  sans:
+    family: ["Arial", "Liberation Sans", "DejaVu Sans"]
+    weight: 400
+    letter_spacing_em: 0.0
+  serif:
+    family: ["STIX Two Text", "Times New Roman", "serif"]
+    weight: 400
+    letter_spacing_em: 0.0
+  mono:
+    family: ["IBM Plex Mono", "Consolas", "DejaVu Sans Mono", "monospace"]
+    weight: 400
+    letter_spacing_em: 0.0
+  math: "STIX Two Math"
+  roles_pt: {display: 20.0, figure_title: 11.0, section_title: 9.0, body: 7.7, label: 7.3, axis_label: 7.2, caption: 6.6, micro: 5.7}
+  line_height: {tight: 1.02, body: 1.24, relaxed: 1.44}
+  casing: {display: uppercase, section_title: uppercase, eyebrow: uppercase, label: none}
+
+shape:
+  strokes:
+    hairline: {color: border, width_pt: 0.55, style: dashed, cap: round, join: round}
+    boundary: {color: border, width_pt: 1.10, style: solid, cap: round, join: round}
+    emphasis: {color: data_primary, width_pt: 1.45, style: solid, cap: round, join: round}
+    flow: {color: connector, width_pt: 1.15, style: solid, cap: round, join: round}
+    optional_flow: {color: border, width_pt: 0.80, style: dashed, cap: round, join: round}
+  vocabulary:
+    field:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 0.62
+      stroke: {color: border, width_pt: 1.05, style: solid, cap: round, join: round}
+      radius: 0.14
+      padding: [0.18, 0.22]
+      shadow: none
+      emphasis: quiet
+    group:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 1.00, style: dashed, cap: round, join: round}
+      radius: 0.10
+      padding: [0.15, 0.18]
+      shadow: none
+      emphasis: quiet
+    module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 1.10, style: solid, cap: round, join: round}
+      radius: 0.065
+      padding: [0.11, 0.16]
+      shadow: none
+      emphasis: normal
+    focal_module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: highlight, width_pt: 1.45, style: solid, cap: round, join: round}
+      radius: 0.075
+      padding: [0.13, 0.18]
+      shadow: none
+      emphasis: strong
+    token:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 0.90, style: solid, cap: round, join: round}
+      radius: 0.035
+      padding: [0.05, 0.08]
+      shadow: none
+      emphasis: normal
+    tag:
+      geometry: capsule
+      fill: data_primary
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.18
+      padding: [0.04, 0.11]
+      shadow: none
+      emphasis: strong
+    panel_header:
+      geometry: clipped_header
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: butt, join: bevel}
+      radius: 0.04
+      padding: [0.07, 0.13]
+      shadow: none
+      emphasis: strong
+    encoder:
+      geometry: trapezoid
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 1.20, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
+    dataset:
+      geometry: cylinder
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 1.00, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
+  arrowheads: {standard: {style: "-|>", scale: 9.0}, subtle: {style: "->", scale: 7.5}}
+  icon: {family: line, canvas: 24.0, stroke_pt: 1.7, corner_radius: 3.0}
+
+spacing:
+  base: 4.0
+  scale: [2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96]
+  density: compact
+
+layout:
+  gutter: 0.12
+  outer_margin: 0.14
+  alignment: geometric
+
+chart:
+  axes: {color: text_primary, width_pt: 0.80, top: false, right: false}
+  lines: {width_pt: 1.45, secondary_width_pt: 1.05, reference_style: dashed}
+  markers: {size_pt: 4.3, edge_width_pt: 0.65, fill: surface}
+  grid: {enabled: true, axis: y, color: border, opacity: 0.40, width_pt: 0.52}
+  legend: {frame: false, location: best, columns: 1, handle_length: 1.8}
+  uncertainty: {style: band, opacity: 0.16, edge: none}
+  rules:
+    - Blue encodes shared or predictive structure; coral encodes direct action or focal performance.
+    - Domain colors remain stable across plots, diagrams, and UI filters.
+    - Mathematical variables use the math stack; explanatory labels use bold sans-serif.
+    - Pair colored paths with explicit labels and arrow direction.
+    - Keep backgrounds quiet so equations and causal structure dominate.
+
+web:
+  content_width_px: 1240
+  breakpoints_px: {small: 560, medium: 840, large: 1240}
+  radius_scale_px: {small: 6, medium: 14, large: 28, pill: 999}
+  focus_ring: {color: highlight, width_px: 3, offset_px: 3, opacity: 0.72}
+  transitions_ms: {instant: 0, fast: 130, normal: 230, deliberate: 460}
+
+motion:
+  principles:
+    - Blue world-model structure appears first; coral intent-to-action flow activates second.
+    - Particle fields remain atmospheric and never compete with readable content.
+    - Circular or recurrent motion represents rollout; straight arrows represent direct control.
+  curves:
+    enter: {duration_ms: 520, easing: "cubic-bezier(0.16, 1, 0.3, 1)", distance_px: 20, opacity_from: 0.0}
+    update: {duration_ms: 260, easing: "cubic-bezier(0.4, 0, 0.2, 1)", distance_px: 7, opacity_from: 0.68}
+    exit: {duration_ms: 180, easing: "cubic-bezier(0.4, 0, 1, 1)", distance_px: 7, opacity_from: 1.0}
+  reduced_motion: crossfade
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+  safe_area_percent: 6.0
+  title_duration_s: 2.6
+  transition: enter
+  caption: {max_width_percent: 72, bottom_percent: 7, size_px: 36, line_height: 1.24, background: surface_strong, background_opacity: 0.88}
+
+variants:
+  paper: {}
+  web:
+    color:
+      roles:
+        canvas: {value: "#050914", usage: "Cinematic website and presentation canvas"}
+        surface: {value: "#0A101E", usage: "Dark content cards and navigation surfaces"}
+        surface_subtle: {value: "#111A2B", usage: "Quiet metric and media regions"}
+        surface_strong: {value: "#172338", usage: "Raised rails and chapter cards", on_color: text_inverse}
+        text_primary: {value: "#F4F7FB", usage: "Primary display and body text on dark media"}
+        text_secondary: {value: "#AAB5C4", usage: "Supporting text and metadata"}
+        text_inverse: {value: "#FFFFFF", usage: "High-contrast labels"}
+        border: {value: "#2B3A50", usage: "Fine editorial dividers and card edges"}
+        connector: {value: "#DCE7F4", usage: "White direct relationships on dark media"}
+        data_primary: {value: "#4A91D3", usage: "IN/world/shared brand accent"}
+        data_secondary: {value: "#45A990", usage: "Verified world rollout and goal intent"}
+        data_tertiary: {value: "#8C69B5", usage: "Supporting domain accent"}
+        data_quaternary: {value: "#F08A42", usage: "Supporting domain accent"}
+        highlight: {value: "#E85B5D", usage: "ACT/direct-control brand accent"}
+        positive: {value: "#65BEA2", usage: "Positive metric and deployed state"}
+        warning: {value: "#F08A42", usage: "Attention and training-only state"}
+        negative: {value: "#C94850", usage: "Failure and error"}
+    shape:
+      vocabulary:
+        field: {geometry: rounded_rectangle, fill: canvas, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.0, style: solid, cap: round, join: round}, radius: 0.12, padding: [0.18, 0.24], shadow: none, emphasis: quiet}
+        module: {geometry: rounded_rectangle, fill: surface, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.8, style: solid, cap: round, join: round}, radius: 0.06, padding: [0.10, 0.16], shadow: none, emphasis: normal}
+        focal_module: {geometry: rounded_rectangle, fill: surface_subtle, fill_opacity: 1.0, stroke: {color: highlight, width_pt: 1.25, style: solid, cap: round, join: round}, radius: 0.07, padding: [0.12, 0.18], shadow: none, emphasis: strong}
+        panel_header: {geometry: clipped_header, fill: surface_strong, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.0, style: solid, cap: butt, join: bevel}, radius: 0.04, padding: [0.07, 0.13], shadow: none, emphasis: strong}
+        tag: {geometry: capsule, fill: highlight, fill_opacity: 1.0, stroke: {color: highlight, width_pt: 0.0, style: solid, cap: round, join: round}, radius: 0.18, padding: [0.04, 0.11], shadow: none, emphasis: strong}
+  video:
+    color:
+      roles:
+        canvas: {value: "#050914", usage: "Cinematic video canvas"}
+        surface: {value: "#0A101E", usage: "Video scene surfaces"}
+        surface_subtle: {value: "#111A2B", usage: "Supporting video panels"}
+        surface_strong: {value: "#172338", usage: "Caption and chapter rails", on_color: text_inverse}
+        text_primary: {value: "#F4F7FB", usage: "Primary video typography"}
+        text_secondary: {value: "#AAB5C4", usage: "Supporting video typography"}
+        text_inverse: {value: "#FFFFFF", usage: "High-contrast video labels"}
+        border: {value: "#2B3A50", usage: "Safe areas and dividers"}
+        connector: {value: "#DCE7F4", usage: "Direct relationships"}
+        data_primary: {value: "#4A91D3", usage: "World/shared motion"}
+        data_secondary: {value: "#45A990", usage: "Verified rollout"}
+        data_tertiary: {value: "#8C69B5", usage: "Domain accent"}
+        data_quaternary: {value: "#F08A42", usage: "Domain accent"}
+        highlight: {value: "#E85B5D", usage: "Action and focal performance"}
+        positive: {value: "#65BEA2", usage: "Positive state"}
+        warning: {value: "#F08A42", usage: "Attention"}
+        negative: {value: "#C94850", usage: "Failure"}
+    shape:
+      vocabulary:
+        panel_header: {geometry: clipped_header, fill: surface_strong, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.0, style: solid, cap: butt, join: bevel}, radius: 0.04, padding: [0.07, 0.13], shadow: none, emphasis: strong}
+        module: {geometry: rounded_rectangle, fill: surface, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.8, style: solid, cap: round, join: round}, radius: 0.06, padding: [0.10, 0.16], shadow: none, emphasis: normal}
+        focal_module: {geometry: rounded_rectangle, fill: surface_subtle, fill_opacity: 1.0, stroke: {color: highlight, width_pt: 1.25, style: solid, cap: round, join: round}, radius: 0.07, padding: [0.12, 0.18], shadow: none, emphasis: strong}

@@ -6,6 +6,7 @@ import argparse
 from pathlib import Path
 
 from .compiler import compile_theme
+from .styleboard import render_styleboards
 from .theme import load_theme
 
 
@@ -17,6 +18,9 @@ def parser() -> argparse.ArgumentParser:
     compile_command = commands.add_parser("compile", help="compile cross-media tokens")
     compile_command.add_argument("theme", type=Path)
     compile_command.add_argument("--output", type=Path, required=True)
+    styleboard = commands.add_parser("styleboard", help="render the comprehensive style-board suite")
+    styleboard.add_argument("theme", type=Path)
+    styleboard.add_argument("--output", type=Path, required=True)
     return root
 
 
@@ -28,8 +32,10 @@ def main() -> None:
     elif args.command == "compile":
         for path in compile_theme(theme, args.output):
             print(path)
+    elif args.command == "styleboard":
+        for path in render_styleboards(theme, args.output):
+            print(path)
 
 
 if __name__ == "__main__":
     main()
-

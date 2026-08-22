@@ -82,10 +82,18 @@ def compile_theme(theme: Theme, output_dir: str | Path) -> list[Path]:
         "theme.css": css_variables(theme),
         "matplotlib.json": json.dumps(matplotlib_rc(theme), indent=2) + "\n",
     }
+    for variant_name in sorted(theme.variants):
+        variant = theme.for_variant(variant_name)
+        files[f"theme.{variant_name}.json"] = json.dumps(
+            variant.model_dump(mode="json"), indent=2
+        ) + "\n"
+        files[f"theme.{variant_name}.css"] = css_variables(variant)
+        files[f"matplotlib.{variant_name}.json"] = json.dumps(
+            matplotlib_rc(variant), indent=2
+        ) + "\n"
     written = []
     for name, content in files.items():
         path = output / name
         path.write_text(content, encoding="utf-8")
         written.append(path)
     return written
-

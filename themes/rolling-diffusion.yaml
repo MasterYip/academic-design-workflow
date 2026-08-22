@@ -1,0 +1,211 @@
+extends: academic-clean.yaml
+
+meta:
+  name: rolling-diffusion
+  version: 1
+  description: Dense gray-dominant technical storytelling with clipped charcoal panels, muted blue structure, orange emphasis, and restrained burgundy action sequences.
+  intent:
+    - Present a large system as an ordered visual narrative with explicit phases and temporal direction.
+    - Keep computational machinery predominantly gray while muted blue and orange clarify structure and emphasis.
+    - Combine publication density with friendly rounded modules and strong panel navigation.
+  avoid:
+    - Applying every accent to equal visual area or using rainbow color without semantics.
+    - Heavy shadows, photorealistic UI chrome, glass effects, or decorative gradients.
+    - Floating elements without alignment guides, containment, or a clear flow direction.
+    - Copying the supplied diagrams' exact geometry, wording, or layout.
+    - Purple, saturated cyan, or large fields of high-chroma color.
+
+color:
+  roles:
+    canvas: {value: "#F8F8F6", usage: "Warm near-white paper, web, and video ground"}
+    surface: {value: "#FCFCFB", usage: "Primary cards, modules, and plot fields"}
+    surface_subtle: {value: "#E9E9E6", usage: "Grouped technical zones, robot stages, and inactive states"}
+    surface_strong: {value: "#5B5B58", usage: "Clipped panel rails and chapter headers", on_color: text_inverse}
+    text_primary: {value: "#2E2E2C", usage: "Neutral charcoal hierarchy and technical labels"}
+    text_secondary: {value: "#70716D", usage: "Secondary descriptions and guide labels"}
+    text_inverse: {value: "#FFFFFF", usage: "Labels on charcoal and saturated fills"}
+    border: {value: "#BFC0BC", usage: "Technical boundaries, baselines, and quiet dividers"}
+    connector: {value: "#333331", usage: "Primary directed flow and causal connectors"}
+    data_primary: {value: "#3E6378", usage: "State history, shared structure, and primary trajectory"}
+    data_secondary: {value: "#7895A6", usage: "Low-saturation blue decoration, predicted state, and secondary structure"}
+    data_tertiary: {value: "#8C8E89", usage: "Neutral task families, baselines, and inactive categories"}
+    data_quaternary: {value: "#E7A12B", usage: "Privileged signals, reconstruction, current phase, and focal emphasis"}
+    highlight: {value: "#F2C14A", usage: "Current time, selected token, and future rollout annotation"}
+    positive: {value: "#A3A79E", usage: "Near-neutral success, future target, and enabled state"}
+    warning: {value: "#D96C2F", usage: "Proprioception, training path, heat, and important caution"}
+    negative: {value: "#820817", usage: "Action history, diffusion residual, and destructive phase"}
+  categorical: ["#3E6378", "#E7A12B", "#7895A6", "#8C8E89", "#A3A79E", "#820817"]
+  sequential: ["#EFF2F2", "#D3DDE1", "#A9BEC8", "#7895A6", "#3E6378"]
+  diverging: ["#820817", "#C57968", "#F2F1ED", "#9EB4BE", "#3E6378"]
+  opacity:
+    invisible: 0.0
+    ghost: 0.07
+    subtle: 0.16
+    muted: 0.32
+    supporting: 0.68
+    solid: 1.0
+
+typography:
+  sans:
+    family: ["Arial", "Liberation Sans", "DejaVu Sans"]
+    weight: 400
+    letter_spacing_em: 0.0
+  serif:
+    family: ["STIX Two Text", "Times New Roman", "serif"]
+    weight: 400
+    letter_spacing_em: 0.0
+  mono:
+    family: ["IBM Plex Mono", "Consolas", "DejaVu Sans Mono", "monospace"]
+    weight: 400
+    letter_spacing_em: 0.0
+  math: "STIX Two Math"
+  roles_pt:
+    display: 19.0
+    figure_title: 10.5
+    section_title: 8.7
+    body: 7.8
+    label: 7.2
+    axis_label: 7.2
+    caption: 6.6
+    micro: 5.7
+  casing:
+    display: none
+    section_title: none
+    eyebrow: uppercase
+    label: none
+
+shape:
+  strokes:
+    hairline: {color: border, width_pt: 0.45, style: dotted, cap: round, join: round}
+    boundary: {color: connector, width_pt: 0.85, style: solid, cap: round, join: round}
+    emphasis: {color: connector, width_pt: 1.20, style: solid, cap: round, join: round}
+    flow: {color: connector, width_pt: 0.90, style: solid, cap: round, join: round}
+    optional_flow: {color: border, width_pt: 0.70, style: dotted, cap: round, join: round}
+  shadows:
+    none: {color: text_primary, opacity: 0.0, blur: 0, offset_x: 0, offset_y: 0}
+    lifted: {color: connector, opacity: 0.20, blur: 8, offset_x: 1, offset_y: 3}
+  vocabulary:
+    field:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 0.72
+      stroke: {color: border, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.18
+      padding: [0.20, 0.26]
+      shadow: none
+      emphasis: quiet
+    group:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 0.84
+      stroke: {color: border, width_pt: 0.65, style: solid, cap: round, join: round}
+      radius: 0.10
+      padding: [0.15, 0.20]
+      shadow: none
+      emphasis: quiet
+    module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.80, style: solid, cap: round, join: round}
+      radius: 0.045
+      padding: [0.12, 0.16]
+      shadow: none
+      emphasis: normal
+    focal_module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_quaternary, width_pt: 1.25, style: solid, cap: round, join: round}
+      radius: 0.06
+      padding: [0.12, 0.18]
+      shadow: lifted
+      emphasis: strong
+    token:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.55, style: solid, cap: round, join: round}
+      radius: 0.025
+      padding: [0.05, 0.08]
+      shadow: none
+      emphasis: normal
+    tag:
+      geometry: capsule
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.18
+      padding: [0.04, 0.10]
+      shadow: none
+      emphasis: normal
+    panel_header:
+      geometry: clipped_header
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: butt, join: bevel}
+      radius: 0.08
+      padding: [0.08, 0.14]
+      shadow: none
+      emphasis: strong
+    encoder:
+      geometry: trapezoid
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.85, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
+    dataset:
+      geometry: cylinder
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.75, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.10, 0.12]
+      shadow: none
+      emphasis: normal
+  arrowheads:
+    standard: {style: "-|>", scale: 8.5}
+    subtle: {style: "->", scale: 7.0}
+
+spacing:
+  density: compact
+
+layout:
+  gutter: 0.13
+  outer_margin: 0.16
+
+chart:
+  axes: {color: connector, width_pt: 0.75, top: false, right: false}
+  lines: {width_pt: 1.30, secondary_width_pt: 1.0, reference_style: dotted}
+  markers: {size_pt: 4.0, edge_width_pt: 0.55, fill: surface}
+  grid: {enabled: true, axis: y, color: border, opacity: 0.45, width_pt: 0.48}
+  legend: {frame: false, location: best, columns: 1, handle_length: 1.7}
+  uncertainty: {style: band, opacity: 0.18, edge: none}
+
+web:
+  radius_scale_px: {small: 4, medium: 12, large: 24, pill: 999}
+  focus_ring: {color: data_primary, width_px: 3, offset_px: 3, opacity: 0.65}
+
+motion:
+  principles:
+    - Reveal systems by phase and preserve the left-to-right or past-to-future direction.
+    - Animate signal flow along established connectors instead of moving whole diagrams arbitrarily.
+    - Use color arrival to indicate semantic activation while neutral machinery remains stable.
+  curves:
+    enter: {duration_ms: 380, easing: "cubic-bezier(0.22, 1, 0.36, 1)", distance_px: 16, opacity_from: 0.0}
+    update: {duration_ms: 220, easing: "cubic-bezier(0.4, 0, 0.2, 1)", distance_px: 6, opacity_from: 0.65}
+    exit: {duration_ms: 160, easing: "cubic-bezier(0.4, 0, 1, 1)", distance_px: 6, opacity_from: 1.0}
+
+video:
+  title_duration_s: 2.0
+  transition: enter
+  caption:
+    max_width_percent: 74
+    bottom_percent: 6
+    size_px: 36
+    line_height: 1.22
+    background: surface_strong
+    background_opacity: 0.90
