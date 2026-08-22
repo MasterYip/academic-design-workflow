@@ -1,0 +1,42 @@
+/* Load the compiled theme.css before this file. */
+*, *::before, *::after { box-sizing: border-box; }
+html { color-scheme: light; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  color: var(--adw-color-roles-text-primary-value);
+  background: var(--adw-color-roles-canvas-value);
+  font-family: var(--adw-typography-sans-family);
+  line-height: var(--adw-typography-line-height-body);
+}
+a { color: var(--adw-color-roles-data-primary-value); text-underline-offset: 0.18em; }
+a:focus-visible, button:focus-visible {
+  outline: calc(var(--adw-web-focus-ring-width-px) * 1px) solid var(--adw-color-roles-data-primary-value);
+  outline-offset: calc(var(--adw-web-focus-ring-offset-px) * 1px);
+}
+.adw-shell {
+  width: min(calc(100% - 2rem), calc(var(--adw-web-content-width-px) * 1px));
+  margin-inline: auto;
+}
+.adw-section { padding-block: clamp(3rem, 8vw, 7rem); }
+.adw-section-heading { max-width: 46rem; margin-bottom: clamp(1.5rem, 4vw, 3rem); }
+.adw-eyebrow {
+  margin: 0 0 0.6rem;
+  color: var(--adw-color-roles-data-primary-value);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.adw-section-heading h2 { margin: 0; font-size: clamp(1.8rem, 4vw, 3.4rem); line-height: 1.05; }
+.adw-section-summary { color: var(--adw-color-roles-text-secondary-value); font-size: 1.1rem; }
+.adw-figure {
+  margin: 0;
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  border: 1px solid var(--adw-color-roles-border-value);
+  border-radius: calc(var(--adw-web-radius-scale-px-medium) * 1px);
+  background: var(--adw-color-roles-surface-value);
+}
+.adw-figure img, .adw-figure video { display: block; width: 100%; height: auto; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

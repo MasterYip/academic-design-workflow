@@ -1,0 +1,5 @@
+interface:
+  display_name: "Academic Design Workflow"
+  short_description: "Unify paper, web, and video design"
+  brand_color: "#315B7D"
+  default_prompt: "Use $academic-design-workflow to create a cohesive visual system and apply it to my academic deliverables."

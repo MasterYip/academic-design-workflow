@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "academic-design-workflow"
+version = "0.1.0"
+description = "Theme-driven design infrastructure for academic figures, project websites, and videos."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Academic Design Workflow contributors" }]
+dependencies = [
+  "matplotlib>=3.8",
+  "pydantic>=2.7",
+  "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+adw = "academic_design_workflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/academic_design_workflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+

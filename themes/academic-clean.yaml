@@ -1,0 +1,241 @@
+meta:
+  name: academic-clean
+  version: 1
+  description: Calm technical clarity with warm paper surfaces and restrained semantic accents.
+  intent:
+    - Make the contribution and reading order obvious before decorative detail.
+    - Remain legible at two-column paper size and coherent on screen and in motion.
+    - Use shape, label, and line style in addition to color for semantic distinction.
+  avoid:
+    - Decorative gradients, glass effects, and shadows without information value.
+    - Saturating every module with a different accent.
+    - Thin low-contrast text and dense borders around every region.
+
+color:
+  roles:
+    canvas: {value: "#F7F6F2", usage: "Outer paper-like field and page background"}
+    surface: {value: "#FFFFFF", usage: "Primary content surface"}
+    surface_subtle: {value: "#EFEEE9", usage: "Quiet grouped regions and alternating rows"}
+    surface_strong: {value: "#343A40", usage: "Dark header rails and high-emphasis panels", on_color: text_inverse}
+    text_primary: {value: "#202428", usage: "Titles, labels, body text, and critical annotations"}
+    text_secondary: {value: "#60676D", usage: "Supporting detail and metadata"}
+    text_inverse: {value: "#FFFFFF", usage: "Text on dark or saturated fills"}
+    border: {value: "#C8CBC8", usage: "Quiet boundaries and separators"}
+    connector: {value: "#6E7478", usage: "Neutral flow and relationship connectors"}
+    data_primary: {value: "#315B7D", usage: "Primary method, series, or state"}
+    data_secondary: {value: "#3E806E", usage: "Secondary method, series, or observation"}
+    data_tertiary: {value: "#B66A35", usage: "Third series, action, or controlled emphasis"}
+    data_quaternary: {value: "#76649A", usage: "Fourth series or auxiliary latent variable"}
+    highlight: {value: "#C9972C", usage: "Single focal contribution or selected state"}
+    positive: {value: "#39745B", usage: "Improvement, success, or valid state"}
+    warning: {value: "#A65D24", usage: "Caution or unresolved issue"}
+    negative: {value: "#A64646", usage: "Failure, regression, or invalid state"}
+  categorical: ["#315B7D", "#3E806E", "#B66A35", "#76649A", "#A64646", "#6E7478"]
+  sequential: ["#E8EFF4", "#BDD0DE", "#85A9BF", "#527E9B", "#315B7D"]
+  diverging: ["#A64646", "#D99980", "#F3EEE8", "#86B5A5", "#39745B"]
+  opacity:
+    invisible: 0.0
+    ghost: 0.08
+    subtle: 0.14
+    muted: 0.34
+    supporting: 0.62
+    solid: 1.0
+
+typography:
+  sans:
+    family: ["Source Sans 3", "Arial", "Liberation Sans", "DejaVu Sans"]
+    weight: 400
+    letter_spacing_em: 0.0
+  serif:
+    family: ["Source Serif 4", "Times New Roman", "STIX Two Text", "serif"]
+    weight: 400
+    letter_spacing_em: 0.0
+  mono:
+    family: ["IBM Plex Mono", "Consolas", "DejaVu Sans Mono", "monospace"]
+    weight: 400
+    letter_spacing_em: 0.0
+  math: "STIX Two Math"
+  roles_pt:
+    display: 18.0
+    figure_title: 10.0
+    section_title: 8.5
+    body: 8.0
+    label: 7.5
+    axis_label: 7.5
+    caption: 7.0
+    micro: 6.2
+  line_height:
+    tight: 1.05
+    body: 1.28
+    relaxed: 1.48
+  casing:
+    display: none
+    section_title: none
+    eyebrow: uppercase
+    label: none
+
+shape:
+  strokes:
+    hairline: {color: border, width_pt: 0.45, style: solid, cap: round, join: round}
+    boundary: {color: border, width_pt: 0.75, style: solid, cap: round, join: round}
+    emphasis: {color: text_primary, width_pt: 1.15, style: solid, cap: round, join: round}
+    flow: {color: connector, width_pt: 0.85, style: solid, cap: round, join: round}
+    optional_flow: {color: connector, width_pt: 0.75, style: dashed, cap: round, join: round}
+  shadows:
+    none: {color: text_primary, opacity: 0.0, blur: 0, offset_x: 0, offset_y: 0}
+    lifted: {color: text_primary, opacity: 0.12, blur: 12, offset_x: 0, offset_y: 4}
+  vocabulary:
+    field:
+      geometry: rounded_rectangle
+      fill: canvas
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.65, style: solid, cap: round, join: round}
+      radius: 0.08
+      padding: [0.22, 0.28]
+      shadow: none
+      emphasis: quiet
+    group:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.65, style: solid, cap: round, join: round}
+      radius: 0.06
+      padding: [0.16, 0.20]
+      shadow: none
+      emphasis: quiet
+    module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.80, style: solid, cap: round, join: round}
+      radius: 0.045
+      padding: [0.13, 0.18]
+      shadow: none
+      emphasis: normal
+    focal_module:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 1.20, style: solid, cap: round, join: round}
+      radius: 0.045
+      padding: [0.13, 0.18]
+      shadow: none
+      emphasis: strong
+    token:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: data_primary, width_pt: 0.70, style: solid, cap: round, join: round}
+      radius: 0.022
+      padding: [0.06, 0.09]
+      shadow: none
+      emphasis: normal
+    tag:
+      geometry: capsule
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.55, style: solid, cap: round, join: round}
+      radius: 0.16
+      padding: [0.05, 0.12]
+      shadow: none
+      emphasis: quiet
+  arrowheads:
+    standard: {style: "-|>", scale: 8.0}
+    subtle: {style: "->", scale: 7.0}
+  icon:
+    family: line
+    canvas: 24.0
+    stroke_pt: 1.5
+    corner_radius: 2.0
+
+spacing:
+  base: 4.0
+  scale: [2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96]
+  density: balanced
+
+layout:
+  figure_width_in:
+    single_column: 3.50
+    one_and_half_column: 5.25
+    double_column: 7.16
+    full_page: 7.50
+  aspect_ratios:
+    square: 1.0
+    standard: 1.333333
+    wide: 1.777778
+    ultrawide: 2.2
+  grid_columns: 12
+  gutter: 0.18
+  outer_margin: 0.24
+  alignment: optical
+  reading_order: left_to_right
+
+chart:
+  axes:
+    color: text_primary
+    width_pt: 0.75
+    top: false
+    right: false
+  lines:
+    width_pt: 1.35
+    secondary_width_pt: 1.05
+    reference_style: dashed
+  markers:
+    size_pt: 4.2
+    edge_width_pt: 0.65
+    fill: surface
+  grid:
+    enabled: true
+    axis: y
+    color: border
+    opacity: 0.38
+    width_pt: 0.50
+  legend:
+    frame: false
+    location: best
+    columns: 1
+    handle_length: 1.8
+  uncertainty:
+    style: band
+    opacity: 0.16
+    edge: none
+  rules:
+    - Encode important categories with line style or marker as well as hue.
+    - Start bars at zero unless a visible axis break and rationale are supplied.
+    - State uncertainty definition and aggregation in the caption or legend.
+    - Keep comparison plots on shared scales when the comparison requires it.
+    - Use direct labels when they reduce legend lookup without causing collisions.
+
+web:
+  content_width_px: 1180
+  breakpoints_px: {small: 560, medium: 820, large: 1180}
+  radius_scale_px: {small: 4, medium: 9, large: 18, pill: 999}
+  focus_ring: {color: data_primary, width_px: 3, offset_px: 3, opacity: 0.55}
+  transitions_ms: {instant: 0, fast: 140, normal: 240, deliberate: 420}
+
+motion:
+  principles:
+    - Motion explains hierarchy, causality, or change; it does not decorate idle space.
+    - Introduce one conceptual layer at a time and preserve spatial continuity.
+    - Use a single dominant transition family per sequence.
+  curves:
+    enter: {duration_ms: 420, easing: "cubic-bezier(0.22, 1, 0.36, 1)", distance_px: 18, opacity_from: 0.0}
+    update: {duration_ms: 240, easing: "cubic-bezier(0.4, 0, 0.2, 1)", distance_px: 8, opacity_from: 0.7}
+    exit: {duration_ms: 180, easing: "cubic-bezier(0.4, 0, 1, 1)", distance_px: 8, opacity_from: 1.0}
+  reduced_motion: crossfade
+
+video:
+  width: 1920
+  height: 1080
+  fps: 30
+  safe_area_percent: 5.0
+  title_duration_s: 2.4
+  transition: enter
+  caption:
+    max_width_percent: 76
+    bottom_percent: 7
+    size_px: 38
+    line_height: 1.25
+    background: surface_strong
+    background_opacity: 0.86
+

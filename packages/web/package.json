@@ -1,0 +1,7 @@
+{
+  "name": "@academic-design/web",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {".": "./src/index.ts", "./base.css": "./src/base.css"}
+}
+
