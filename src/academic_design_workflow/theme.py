@@ -92,7 +92,8 @@ class ShadowStyle(StrictModel):
 class ShapeStyle(StrictModel):
     geometry: Literal[
         "rectangle", "rounded_rectangle", "capsule", "circle", "line",
-        "trapezoid", "cylinder", "clipped_header", "rounded_top_rectangle",
+        "trapezoid", "cylinder", "layered_cylinder", "clipped_header",
+        "rounded_top_rectangle",
     ]
     fill: str
     fill_opacity: float = Field(default=1, ge=0, le=1)

@@ -2,7 +2,7 @@ extends: rolling-diffusion.yaml
 
 meta:
   name: hoffman
-  version: 1
+  version: 2
   description: Restrained Hoffman technical storytelling with integrated panel rails, compact semantic widgets, and an explicit graph grammar.
   intent:
     - Organize Hoffman system explanations into calm, clearly bounded stages with strong reading order.
@@ -22,9 +22,14 @@ color:
 
 shape:
   strokes:
-    graph_flow: {color: connector, width_pt: 0.95, style: solid, cap: round, join: round}
-    graph_feedback: {color: connector, width_pt: 0.82, style: dashed, cap: round, join: round}
-    graph_guide: {color: border, width_pt: 0.62, style: dotted, cap: round, join: round}
+    hairline: {color: border, width_pt: 0.35, style: dotted, cap: round, join: round}
+    boundary: {color: border, width_pt: 0.68, style: solid, cap: round, join: round}
+    emphasis: {color: connector, width_pt: 1.05, style: solid, cap: round, join: round}
+    flow: {color: connector, width_pt: 0.85, style: solid, cap: round, join: round}
+    optional_flow: {color: border, width_pt: 0.60, style: dotted, cap: round, join: round}
+    graph_flow: {color: connector, width_pt: 0.92, style: solid, cap: round, join: round}
+    graph_feedback: {color: connector, width_pt: 0.72, style: dashed, cap: round, join: round}
+    graph_guide: {color: border, width_pt: 0.45, style: dotted, cap: round, join: round}
   vocabulary:
     panel_container:
       geometry: rounded_rectangle
@@ -48,26 +53,71 @@ shape:
       geometry: rounded_rectangle
       fill: surface
       fill_opacity: 1.0
-      stroke: {color: border, width_pt: 0.72, style: solid, cap: round, join: round}
-      radius: 0.07
-      padding: [0.10, 0.14]
+      stroke: {color: border, width_pt: 0.68, style: solid, cap: round, join: round}
+      radius: 0.055
+      padding: [0.09, 0.13]
       shadow: none
       emphasis: normal
     widget_focal:
       geometry: rounded_rectangle
       fill: surface
       fill_opacity: 1.0
-      stroke: {color: data_quaternary, width_pt: 1.15, style: solid, cap: round, join: round}
-      radius: 0.07
-      padding: [0.10, 0.14]
+      stroke: {color: data_quaternary, width_pt: 1.05, style: solid, cap: round, join: round}
+      radius: 0.06
+      padding: [0.09, 0.13]
+      shadow: none
+      emphasis: strong
+    widget_row:
+      geometry: rounded_rectangle
+      fill: surface
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.68, style: solid, cap: round, join: round}
+      radius: 0.065
+      padding: [0.06, 0.07]
+      shadow: none
+      emphasis: normal
+    widget_segment:
+      geometry: rounded_rectangle
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.35, style: solid, cap: round, join: round}
+      radius: 0.035
+      padding: [0.04, 0.07]
+      shadow: none
+      emphasis: quiet
+    widget_segment_active:
+      geometry: rounded_rectangle
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.35, style: solid, cap: round, join: round}
+      radius: 0.035
+      padding: [0.04, 0.07]
+      shadow: none
+      emphasis: strong
+    semantic_badge:
+      geometry: capsule
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.12
+      padding: [0.04, 0.09]
+      shadow: none
+      emphasis: strong
+    process_bar:
+      geometry: rounded_rectangle
+      fill: surface_strong
+      fill_opacity: 1.0
+      stroke: {color: surface_strong, width_pt: 0.0, style: solid, cap: round, join: round}
+      radius: 0.09
+      padding: [0.06, 0.14]
       shadow: none
       emphasis: strong
     graph_group:
       geometry: rounded_rectangle
       fill: surface
       fill_opacity: 0.72
-      stroke: {color: border, width_pt: 0.68, style: solid, cap: round, join: round}
-      radius: 0.10
+      stroke: {color: border, width_pt: 0.58, style: solid, cap: round, join: round}
+      radius: 0.085
       padding: [0.14, 0.18]
       shadow: none
       emphasis: quiet
@@ -75,8 +125,8 @@ shape:
       geometry: rounded_rectangle
       fill: surface
       fill_opacity: 1.0
-      stroke: {color: connector, width_pt: 0.82, style: solid, cap: round, join: round}
-      radius: 0.055
+      stroke: {color: connector, width_pt: 0.88, style: solid, cap: round, join: round}
+      radius: 0.06
       padding: [0.10, 0.14]
       shadow: none
       emphasis: normal
@@ -84,17 +134,44 @@ shape:
       geometry: rounded_rectangle
       fill: surface
       fill_opacity: 1.0
-      stroke: {color: data_quaternary, width_pt: 1.25, style: solid, cap: round, join: round}
-      radius: 0.065
+      stroke: {color: data_quaternary, width_pt: 1.15, style: solid, cap: round, join: round}
+      radius: 0.07
       padding: [0.10, 0.16]
       shadow: lifted
       emphasis: strong
     graph_port:
       geometry: circle
-      fill: surface
+      fill: data_primary
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.62, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.03, 0.03]
+      shadow: none
+      emphasis: normal
+    graph_port_focal:
+      geometry: circle
+      fill: data_quaternary
+      fill_opacity: 1.0
+      stroke: {color: connector, width_pt: 0.62, style: solid, cap: round, join: round}
+      radius: 0.0
+      padding: [0.03, 0.03]
+      shadow: none
+      emphasis: strong
+    graph_node_header:
+      geometry: rounded_top_rectangle
+      fill: surface_subtle
+      fill_opacity: 1.0
+      stroke: {color: border, width_pt: 0.0, style: solid, cap: butt, join: round}
+      radius: 0.05
+      padding: [0.04, 0.08]
+      shadow: none
+      emphasis: quiet
+    dataset:
+      geometry: layered_cylinder
+      fill: surface_subtle
       fill_opacity: 1.0
       stroke: {color: connector, width_pt: 0.72, style: solid, cap: round, join: round}
       radius: 0.0
-      padding: [0.03, 0.03]
+      padding: [0.10, 0.12]
       shadow: none
       emphasis: normal

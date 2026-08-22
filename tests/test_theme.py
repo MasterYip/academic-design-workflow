@@ -28,18 +28,30 @@ def test_hoffman_theme_exposes_semantic_panel_widget_and_graph_patterns():
     theme = load_theme(ROOT / "themes" / "hoffman.yaml")
 
     assert theme.meta.name == "hoffman"
+    assert theme.meta.version == 2
     assert theme.shape.vocabulary["panel_header"].geometry == "rounded_top_rectangle"
     assert {
         "panel_container",
         "widget",
         "widget_focal",
+        "widget_row",
+        "widget_segment",
+        "widget_segment_active",
+        "semantic_badge",
+        "process_bar",
         "graph_group",
         "graph_node",
         "graph_node_focal",
         "graph_port",
+        "graph_port_focal",
+        "graph_node_header",
     } <= set(theme.shape.vocabulary)
     assert {"graph_flow", "graph_feedback", "graph_guide"} <= set(theme.shape.strokes)
     assert theme.shape.vocabulary["graph_node_focal"].stroke.color == "data_quaternary"
+    assert theme.shape.vocabulary["dataset"].geometry == "layered_cylinder"
+    assert theme.shape.vocabulary["process_bar"].fill == "surface_strong"
+    assert theme.shape.strokes["emphasis"].width_pt > theme.shape.strokes["boundary"].width_pt
+    assert theme.shape.strokes["boundary"].width_pt > theme.shape.strokes["hairline"].width_pt
 
     source = load_theme(ROOT / "themes" / "rolling-diffusion.yaml")
     assert source.shape.vocabulary["panel_header"].geometry == "clipped_header"

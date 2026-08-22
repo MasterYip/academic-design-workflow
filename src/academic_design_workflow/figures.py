@@ -153,22 +153,178 @@ def styled_shape(
             Path.CLOSEPOLY,
         ]
         patch = PathPatch(Path(vertices, codes), **common)
-    elif token.geometry == "cylinder":
-        patch = Rectangle((x, y + height * 0.12), width, height * 0.76, **common)
-        ax.add_patch(patch)
-        ax.add_patch(Ellipse((x + width / 2, y + height * 0.88), width, height * 0.24, **common))
-        ax.add_patch(Ellipse((x + width / 2, y + height * 0.12), width, height * 0.24, **common))
+    elif token.geometry in {"cylinder", "layered_cylinder"}:
+        ring_height = height * 0.20
+        lower_center = y + height * 0.14
+        body_top = y + height * (0.84 if token.geometry == "cylinder" else 0.78)
+        body = Rectangle((x, lower_center), width, body_top - lower_center, **common)
+        ax.add_patch(body)
+        ax.add_patch(Ellipse((x + width / 2, lower_center), width, ring_height, **common))
+        if token.geometry == "layered_cylinder":
+            ring_centers = [y + height * value for value in (0.78, 0.85, 0.92)]
+            for center in ring_centers[:-1]:
+                ax.add_patch(Ellipse((x + width / 2, center), width, ring_height, **common))
+            patch = Ellipse(
+                (x + width / 2, ring_centers[-1]), width, ring_height, **common
+            )
+        else:
+            patch = Ellipse(
+                (x + width / 2, y + height * 0.88), width, height * 0.24, **common
+            )
     elif token.geometry == "circle":
         patch = Ellipse((x + width / 2, y + height / 2), width, height, **common)
     else:
         patch = Rectangle((x, y), width, height, **common)
     ax.add_patch(patch)
     if title:
-        text_color = "text_inverse" if fill_role == "surface_strong" else "text_primary"
+        text_color = theme.color.roles[fill_role].on_color or "text_primary"
         ax.text(x + width / 2, y + height / 2, title, ha="center", va="center",
                 fontsize=theme.typography.roles_pt["caption"], fontweight="bold",
                 color=theme.color_value(text_color), zorder=zorder + 2)
     return patch
+
+
+def semantic_row(
+    ax: Axes,
+    theme: Theme,
+    bounds: tuple[float, float, float, float],
+    labels: Iterable[str],
+    *,
+    active_index: int = 0,
+    zorder: int = 2,
+) -> list:
+    """Draw a compact segmented widget with one semantically active segment."""
+    items = tuple(labels)
+    if not items:
+        raise ValueError("semantic rows require at least one segment")
+    if not 0 <= active_index < len(items):
+        raise ValueError("active segment index is outside the semantic row")
+    x, y, width, height = bounds
+    outer = styled_shape(ax, theme, bounds, style="widget_row", zorder=zorder)
+    gap = min(width * 0.012, 0.06)
+    inset = min(height * 0.10, 0.07)
+    segment_width = (width - inset * 2 - gap * (len(items) - 1)) / len(items)
+    patches = [outer]
+    for index, label in enumerate(items):
+        segment_x = x + inset + index * (segment_width + gap)
+        style = "widget_segment_active" if index == active_index else "widget_segment"
+        segment = styled_shape(
+            ax,
+            theme,
+            (segment_x, y + inset, segment_width, height - inset * 2),
+            style=style,
+            zorder=zorder + 1,
+        )
+        patches.append(segment)
+        text_role = "text_inverse" if index == active_index else "text_primary"
+        ax.text(
+            segment_x + segment_width / 2,
+            y + height / 2,
+            label,
+            ha="center",
+            va="center",
+            fontsize=theme.typography.roles_pt["caption"],
+            color=theme.color_value(text_role),
+            zorder=zorder + 3,
+        )
+    return patches
+
+
+def compound_node(
+    ax: Axes,
+    theme: Theme,
+    bounds: tuple[float, float, float, float],
+    *,
+    title: str,
+    detail: str,
+    badge: str = "",
+    focal: bool = False,
+    port_labels: tuple[str, str] = ("in", "out"),
+    zorder: int = 3,
+) -> dict[str, object]:
+    """Draw a hierarchical graph node with a title band, badge, and explicit ports."""
+    x, y, width, height = bounds
+    style = "graph_node_focal" if focal else "graph_node"
+    node = styled_shape(ax, theme, bounds, style=style, zorder=zorder)
+    inset = min(width * 0.045, 0.10)
+    header_height = height * 0.30
+    header = styled_shape(
+        ax,
+        theme,
+        (x + inset, y + height - header_height - inset, width - inset * 2, header_height),
+        style="graph_node_header",
+        zorder=zorder + 1,
+    )
+    ax.text(
+        x + inset * 2,
+        y + height - header_height / 2 - inset,
+        title,
+        ha="left",
+        va="center",
+        fontsize=theme.typography.roles_pt["label"],
+        fontweight="bold",
+        color=theme.color_value("text_primary"),
+        zorder=zorder + 3,
+    )
+    ax.text(
+        x + inset * 2,
+        y + height * 0.34,
+        detail,
+        ha="left",
+        va="center",
+        fontsize=theme.typography.roles_pt["micro"],
+        color=theme.color_value("text_secondary"),
+        zorder=zorder + 3,
+    )
+    port_size = min(height * 0.18, width * 0.10)
+    port_y = y + height * 0.42 - port_size / 2
+    input_port = styled_shape(
+        ax,
+        theme,
+        (x - port_size / 2, port_y, port_size, port_size),
+        style="graph_port",
+        zorder=zorder + 3,
+    )
+    output_style = "graph_port_focal" if focal else "graph_port"
+    output_port = styled_shape(
+        ax,
+        theme,
+        (x + width - port_size / 2, port_y, port_size, port_size),
+        style=output_style,
+        zorder=zorder + 3,
+    )
+    for port_x, label, alignment in (
+        (x + port_size * 0.75, port_labels[0], "left"),
+        (x + width - port_size * 0.75, port_labels[1], "right"),
+    ):
+        ax.text(
+            port_x,
+            y + height * 0.14,
+            label,
+            ha=alignment,
+            va="center",
+            fontsize=theme.typography.roles_pt["micro"],
+            color=theme.color_value("text_secondary"),
+            zorder=zorder + 3,
+        )
+    badge_patch = None
+    if badge:
+        badge_width = min(width * 0.38, max(width * 0.22, len(badge) * width * 0.035))
+        badge_patch = styled_shape(
+            ax,
+            theme,
+            (x + width - badge_width - inset, y + inset, badge_width, height * 0.20),
+            style="semantic_badge",
+            title=badge,
+            zorder=zorder + 2,
+        )
+    return {
+        "node": node,
+        "header": header,
+        "input_port": input_port,
+        "output_port": output_port,
+        "badge": badge_patch,
+    }
 
 
 def panel(
@@ -201,7 +357,7 @@ def arrow(
     start: tuple[float, float],
     end: tuple[float, float],
     *,
-    role: str = "connector",
+    role: str | None = None,
     style: str = "flow",
     zorder: int = 3,
 ) -> FancyArrowPatch:
@@ -211,7 +367,7 @@ def arrow(
         start, end,
         arrowstyle=str(head["style"]),
         mutation_scale=float(head["scale"]),
-        color=theme.color_value(role if role else stroke.color),
+        color=theme.color_value(role or stroke.color),
         linewidth=stroke.width_pt,
         linestyle=stroke.style,
         shrinkA=1.5, shrinkB=1.5,

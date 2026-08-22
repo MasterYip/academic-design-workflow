@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 
 from .compiler import matplotlib_rc
-from .figures import arrow, box, panel, styled_shape, token_row
+from .figures import arrow, box, compound_node, panel, semantic_row, styled_shape, token_row
 from .theme import Theme
 
 BOARD_SIZE = (16, 9)
@@ -32,6 +32,69 @@ def _setup(theme: Theme, title: str, number: str):
 def _label(ax, theme: Theme, text: str, x=0.0, y=1.03):
     ax.text(x, y, text, transform=ax.transAxes, ha="left", va="bottom",
             fontsize=10, fontweight="bold", color=theme.color_value("text_primary"))
+
+
+def _hoffman_component_proof(fig, grid, theme: Theme) -> None:
+    """Show Hoffman primitives as one dominant, semantically coherent mini-system."""
+    shapes = fig.add_subplot(grid[1, 0])
+    shapes.set(xlim=(0, 10), ylim=(0, 7))
+    shapes.axis("off")
+    _label(shapes, theme, "Reusable silhouettes")
+    styled_shape(shapes, theme, (0.6, 3.75, 4.4, 2.0), style="dataset", title="DATA STACK")
+    shapes.text(5.55, 5.05, "layered cylinder", fontsize=7.2, fontweight="bold",
+                color=theme.color_value("text_primary"))
+    shapes.text(5.55, 4.55, "repeated top contours", fontsize=6.5,
+                color=theme.color_value("text_secondary"))
+    styled_shape(shapes, theme, (0.6, 2.45, 8.7, 0.62), style="process_bar",
+                 title="PROCESS / COLLECTION RAIL")
+    styled_shape(shapes, theme, (0.65, 1.35, 2.15, 0.48), style="semantic_badge",
+                 title="ACTIVE")
+    styled_shape(shapes, theme, (3.35, 1.42, 0.34, 0.34), style="graph_port")
+    arrow(shapes, theme, (3.75, 1.59), (5.15, 1.59), style="graph_flow")
+    arrow(shapes, theme, (5.55, 1.59), (6.95, 1.59), style="graph_feedback")
+    arrow(shapes, theme, (7.35, 1.59), (8.75, 1.59), style="graph_guide")
+    shapes.text(0.65, 0.63, "badge", fontsize=6.2, color=theme.color_value("text_secondary"))
+    shapes.text(3.35, 0.63, "port · flow", fontsize=6.2,
+                color=theme.color_value("text_secondary"))
+    shapes.text(5.55, 0.63, "feedback", fontsize=6.2,
+                color=theme.color_value("text_secondary"))
+    shapes.text(7.35, 0.63, "guide", fontsize=6.2,
+                color=theme.color_value("text_secondary"))
+
+    system = fig.add_subplot(grid[1, 1:])
+    system.set(xlim=(0, 20), ylim=(0, 7))
+    system.axis("off")
+    _label(system, theme, "Compound system grammar")
+    panel(system, theme, (0.1, 0.25, 19.8, 6.2), "Semantic process assembly", label="a")
+    semantic_row(system, theme, (0.85, 4.25, 5.25, 0.86),
+                 ("Observation", "Noise"), active_index=0)
+    semantic_row(system, theme, (0.85, 2.95, 5.25, 0.86),
+                 ("State", "Action"), active_index=1)
+    styled_shape(system, theme, (0.9, 1.55, 2.5, 0.48), style="semantic_badge",
+                 title="CONDITION")
+    system.text(3.75, 1.79, "role + state", fontsize=6.4,
+                va="center", color=theme.color_value("text_secondary"))
+
+    styled_shape(system, theme, (6.75, 2.65, 8.75, 2.8), style="graph_group", zorder=1)
+    system.text(7.05, 5.08, "COMPACT NODE GROUP", fontsize=6.2, fontweight="bold",
+                color=theme.color_value("text_secondary"), zorder=4)
+    compound_node(system, theme, (7.35, 3.15, 3.05, 1.65), title="Encode",
+                  detail="normalize · embed", badge="STATE", port_labels=("obs", "z"))
+    compound_node(system, theme, (11.85, 3.15, 3.05, 1.65), title="Predict",
+                  detail="condition · update", badge="FOCAL", focal=True,
+                  port_labels=("z", "out"))
+    arrow(system, theme, (6.12, 4.63), (7.18, 4.05), style="graph_flow")
+    arrow(system, theme, (6.12, 3.38), (7.18, 3.78), style="graph_flow")
+    arrow(system, theme, (10.52, 3.84), (11.68, 3.84), style="graph_flow")
+    arrow(system, theme, (13.35, 3.02), (9.1, 2.40), style="graph_feedback")
+    styled_shape(system, theme, (6.9, 1.40, 8.35, 0.66), style="process_bar",
+                 title="ROLLOUT / PROCESS STAGE")
+    arrow(system, theme, (11.05, 2.58), (11.05, 2.12), style="graph_flow")
+
+    styled_shape(system, theme, (16.65, 2.50, 2.25, 2.30), style="dataset",
+                 title="OUTPUT DATA")
+    arrow(system, theme, (15.02, 3.84), (16.48, 3.84), style="graph_flow")
+    arrow(system, theme, (15.30, 1.73), (17.15, 2.35), style="graph_guide")
 
 
 def foundations(theme: Theme):
@@ -72,19 +135,14 @@ def foundations(theme: Theme):
         typography.text(1, 0.90 - i * 0.155, role, transform=typography.transAxes,
                         ha="right", fontsize=6, color=theme.color_value("text_secondary"))
 
+    if theme.meta.name == "hoffman":
+        _hoffman_component_proof(fig, grid, theme)
+        return fig
+
     shapes = fig.add_subplot(grid[1, 0]); shapes.set(xlim=(0, 10), ylim=(0, 7)); shapes.axis("off")
     _label(shapes, theme, "Shape vocabulary")
-    if theme.meta.name == "hoffman":
-        specimens = [
-            ("widget", "Widget"),
-            ("widget_focal", "Focal widget"),
-            ("graph_node", "Graph node"),
-            ("graph_node_focal", "Focal node"),
-            ("dataset", "Dataset"),
-        ]
-    else:
-        specimens = [("module", "Module"), ("focal_module", "Focal"), ("tag", "TAG"),
-                     ("encoder", "Encoder"), ("dataset", "Dataset")]
+    specimens = [("module", "Module"), ("focal_module", "Focal"), ("tag", "TAG"),
+                 ("encoder", "Encoder"), ("dataset", "Dataset")]
     for i, (style, name) in enumerate(specimens):
         if style in theme.shape.vocabulary:
             x, y = (0.3 + (i % 2) * 4.8, 4.7 - (i // 2) * 2.0)
@@ -97,37 +155,18 @@ def foundations(theme: Theme):
     widgets = fig.add_subplot(grid[1, 1]); widgets.set(xlim=(0, 10), ylim=(0, 7)); widgets.axis("off")
     _label(widgets, theme, "Widgets & panel patterns")
     panel(widgets, theme, (0.1, 0.3, 9.7, 6.2), "Experiment summary", label="a")
-    if theme.meta.name == "hoffman":
-        styled_shape(widgets, theme, (0.7, 3.75, 3.0, 1.05), style="widget",
-                     title="Observation widget")
-        styled_shape(widgets, theme, (0.7, 1.35, 3.0, 1.05), style="widget_focal",
-                     title="Action widget")
-        styled_shape(widgets, theme, (4.25, 1.0, 4.85, 4.0), style="graph_group")
-        styled_shape(widgets, theme, (4.75, 3.35, 1.45, 0.85), style="graph_node",
-                     title="Encode")
-        styled_shape(widgets, theme, (7.15, 3.35, 1.45, 0.85),
-                     style="graph_node_focal", title="Predict")
-        styled_shape(widgets, theme, (6.33, 3.61, 0.30, 0.30), style="graph_port",
-                     role="data_primary")
-        styled_shape(widgets, theme, (6.72, 3.61, 0.30, 0.30), style="graph_port",
-                     role="data_quaternary")
-        arrow(widgets, theme, (6.62, 3.76), (6.72, 3.76), style="graph_flow")
-        arrow(widgets, theme, (7.88, 3.28), (5.48, 2.30), style="graph_feedback")
-        widgets.text(4.72, 1.45, "ports + solid flow + dashed feedback", fontsize=6.6,
-                     color=theme.color_value("text_secondary"))
-    else:
-        box(widgets, theme, (0.7, 3.7, 3.7, 1.4), title="Policy checkpoint",
-            detail="best validation score")
-        styled_shape(widgets, theme, (5.0, 4.0, 1.7, 0.65), style="tag",
-                     title="SELECTED")
-        for i, role in enumerate(("data_primary", "data_secondary", "data_tertiary")):
-            styled_shape(widgets, theme, (0.8, 2.55 - i * 0.72, 0.38, 0.38),
-                         style="token", role=role)
-            widgets.text(1.45, 2.74 - i * 0.72,
-                         ("Primary result", "Condition", "Task family")[i],
-                         va="center", fontsize=7.2)
-        styled_shape(widgets, theme, (5.0, 1.2, 3.3, 0.85),
-                     style="focal_module", title="Primary action")
+    box(widgets, theme, (0.7, 3.7, 3.7, 1.4), title="Policy checkpoint",
+        detail="best validation score")
+    styled_shape(widgets, theme, (5.0, 4.0, 1.7, 0.65), style="tag",
+                 title="SELECTED")
+    for i, role in enumerate(("data_primary", "data_secondary", "data_tertiary")):
+        styled_shape(widgets, theme, (0.8, 2.55 - i * 0.72, 0.38, 0.38),
+                     style="token", role=role)
+        widgets.text(1.45, 2.74 - i * 0.72,
+                     ("Primary result", "Condition", "Task family")[i],
+                     va="center", fontsize=7.2)
+    styled_shape(widgets, theme, (5.0, 1.2, 3.3, 0.85),
+                 style="focal_module", title="Primary action")
 
     rules = fig.add_subplot(grid[1, 2]); rules.axis("off"); _label(rules, theme, "Cross-media rules")
     if theme.meta.name == "intact":
@@ -135,11 +174,6 @@ def foundations(theme: Theme):
                      "3  Domain chips remain stable everywhere", "4  Pale blue and blush separate systems",
                      "5  Math capsules sit inside strong enclosures", "6  Dark media trade density for atmosphere",
                      "7  Orbit means rollout; arrows mean control", "8  Metrics anchor the presentation identity"]
-    elif theme.meta.name == "hoffman":
-        rule_text = ["1  Rounded rails are integrated with panels", "2  Headers span the full panel width",
-                     "3  Widgets name observation and action roles", "4  Ports expose graph interfaces",
-                     "5  Solid arrows carry primary flow", "6  Dashed arrows mark feedback",
-                     "7  Orange outlines the focal computation", "8  Labels and shape reinforce every hue"]
     elif theme.meta.name == "rolling-diffusion":
         rule_text = ["1  Gray occupies most visual area", "2  Orange marks focal events and paths",
                      "3  Muted blue supports state structure", "4  Burgundy is reserved for action history",
@@ -202,7 +236,14 @@ def framework(theme: Theme):
     styled_shape(ax, theme, (7.2, 5.2, 1.6, 1.15), style="dataset", title="Dataset"); arrow(ax, theme, (7.95, 6.95), (7.95, 6.4)); box(ax, theme, (8.75, 6.55, 0.9, 0.7), title="Loss")
     box(ax, theme, (10.85, 6.25, 3.1, 1.35), style="focal_module", title="Conditioned denoiser", detail="semantic rolling planner")
     for i in range(7): styled_shape(ax, theme, (11.0 + i * 0.57, 5.35, 0.42, 0.55 + i * 0.10), style="token", role="negative" if i < 4 else "data_quaternary")
-    styled_shape(ax, theme, (0.1, 3.7, 15.6, 0.55), style="panel_header"); ax.text(0.35, 3.98, "SEMANTIC ROLLING CONTROL", color=theme.color_value("text_inverse"), fontsize=8, fontweight="bold", va="center")
+    if "process_bar" in theme.shape.vocabulary:
+        styled_shape(ax, theme, (0.1, 3.7, 15.6, 0.55), style="process_bar",
+                     title="SEMANTIC ROLLING CONTROL")
+    else:
+        styled_shape(ax, theme, (0.1, 3.7, 15.6, 0.55), style="panel_header")
+        ax.text(0.35, 3.98, "SEMANTIC ROLLING CONTROL",
+                color=theme.color_value("text_inverse"), fontsize=8,
+                fontweight="bold", va="center")
     token_row(ax, theme, (3.0, 2.72), ["S"] * 8, roles=("data_primary",), width=0.62, height=0.55, gap=0.12); token_row(ax, theme, (3.0, 1.92), ["A"] * 8, roles=("negative",), width=0.62, height=0.55, gap=0.12)
     ax.axvline(8.6, ymin=0.14, ymax=0.44, color=theme.color_value("connector"), linestyle=":"); ax.text(6.1, 3.42, "PAST", ha="center", fontsize=7, color=theme.color_value("text_secondary")); ax.text(11.2, 3.42, "FUTURE", ha="center", fontsize=7, color=theme.color_value("text_secondary"))
     box(ax, theme, (10.2, 1.45, 3.5, 1.8), title="Deployment policy", detail="condition → denoise → action"); arrow(ax, theme, (8.95, 2.55), (10.12, 2.55), role="data_secondary"); arrow(ax, theme, (13.75, 2.35), (15.1, 2.35), role="data_primary"); styled_shape(ax, theme, (15.05, 1.8, 0.55, 1.1), style="token", role="surface_strong", title="ACT")
