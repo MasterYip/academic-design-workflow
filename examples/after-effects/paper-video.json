@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "project_id": "hoffman.paper-video",
+  "title": "HoffMan paper video",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "background": [0.055, 0.063, 0.067],
+  "assets": [],
+  "scenes": [
+    {
+      "id": "scene.problem",
+      "name": "01 Problem",
+      "start": 0,
+      "duration": 4,
+      "claim": "Humanoid policies need useful action horizons without sacrificing feedback.",
+      "ownership": "shared",
+      "source_anchor": {
+        "source": "paper/main.tex",
+        "locator": "sec:introduction#motivation",
+        "revision": "draft"
+      },
+      "layers": [
+        {
+          "id": "layer.problem.title",
+          "name": "Claim title",
+          "kind": "text",
+          "text": "Plan actions. Preserve feedback.",
+          "start": 0,
+          "duration": 4,
+          "ownership": "shared",
+          "source_anchor": {
+            "source": "paper/main.tex",
+            "locator": "sec:introduction#motivation"
+          },
+          "properties": [
+            {
+              "match_name": "ADBE Position",
+              "value": [960, 500],
+              "ownership": "human"
+            },
+            {
+              "match_name": "ADBE Opacity",
+              "keyframes": [
+                {"time": 0, "value": 0},
+                {"time": 0.4, "value": 100},
+                {"time": 3.6, "value": 100},
+                {"time": 4, "value": 0}
+              ],
+              "ownership": "agent"
+            }
+          ],
+          "markers": [
+            {
+              "id": "marker.problem.caption",
+              "time": 0,
+              "duration": 4,
+              "comment": "caption: motivation",
+              "ownership": "shared"
+            }
+          ]
+        },
+        {
+          "id": "layer.problem.panel",
+          "name": "Claim panel",
+          "kind": "shape",
+          "shape": "rectangle",
+          "size": [1320, 280],
+          "fill": [0.12, 0.14, 0.15, 1],
+          "start": 0,
+          "duration": 4,
+          "ownership": "human",
+          "properties": [
+            {
+              "match_name": "ADBE Position",
+              "value": [960, 540],
+              "ownership": "human"
+            }
+          ]
+        }
+      ],
+      "markers": [
+        {
+          "id": "marker.scene.problem",
+          "time": 0,
+          "comment": "narration: problem statement",
+          "ownership": "shared"
+        }
+      ]
+    }
+  ]
+}
