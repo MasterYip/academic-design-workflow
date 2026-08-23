@@ -8,6 +8,9 @@ from pathlib import Path
 from .compiler import compile_theme
 from .styleboard import render_styleboards
 from .theme import load_theme
+from .visio.bridge import VisioBridgeError
+from .visio.cli import configure_parser as configure_visio_parser
+from .visio.cli import run as run_visio
 
 
 def parser() -> argparse.ArgumentParser:
@@ -21,11 +24,23 @@ def parser() -> argparse.ArgumentParser:
     styleboard = commands.add_parser("styleboard", help="render the comprehensive style-board suite")
     styleboard.add_argument("theme", type=Path)
     styleboard.add_argument("--output", type=Path, required=True)
+    configure_visio_parser(commands)
     return root
 
 
 def main() -> None:
     args = parser().parse_args()
+    if args.command == "visio":
+        try:
+            run_visio(args)
+        except (
+            FileExistsError,
+            FileNotFoundError,
+            ValueError,
+            VisioBridgeError,
+        ) as error:
+            raise SystemExit(f"adw visio: {error}") from None
+        return
     theme = load_theme(args.theme)
     if args.command == "validate":
         print(f"valid theme: {theme.meta.name} v{theme.meta.version}")

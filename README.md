@@ -12,6 +12,7 @@ python -m pip install -e .
 adw validate themes/academic-clean.yaml
 adw compile themes/academic-clean.yaml --output generated/academic-clean
 adw styleboard themes/rolling-diffusion.yaml --output generated/styleboards/rolling-diffusion
+adw visio validate examples/visio/hoffman_policy.scene.json
 ```
 
 The compiler creates `theme.json`, `theme.css`, and `matplotlib.json`. The
@@ -43,3 +44,12 @@ JSON, CSS, and Matplotlib artifact for every variant alongside the base tokens.
 
 The Codex skill is in `skills/academic-design-workflow/` and contains the SOP
 for choosing and reviewing each workflow mode.
+
+## Native Visio co-authoring
+
+The optional native Visio layer provides a versioned semantic scene, offline
+validation and stale-safe edit planning, structural VSDX audit/diff, and a
+Windows COM bridge that draws native shapes with glued connectors. It never
+imports SVG/PDF/raster chart content. See the
+[human-agent Visio SOP](docs/visio-human-agent-workflow.md) and the
+[Hoffman example](examples/visio/README.md).
