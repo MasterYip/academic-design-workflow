@@ -69,7 +69,17 @@ def run_bridge(
     for flag, value in optional.items():
         if value is not None:
             command.extend((flag, str(value.resolve()) if isinstance(value, Path) else value))
-    completed = subprocess.run(command, capture_output=True, text=True, check=False)
+    # PowerShell 7 emits UTF-8 while a legacy Windows Python locale may still be
+    # GBK/cp936. Decode explicitly so native Unicode equation labels cannot make
+    # the safety/error path itself fail.
+    completed = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
     if completed.returncode != 0:
         message = completed.stderr.strip() or completed.stdout.strip() or "unknown bridge failure"
         raise VisioBridgeError(message)
