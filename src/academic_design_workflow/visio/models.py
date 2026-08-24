@@ -93,8 +93,22 @@ class ShapeSpec(StrictModel):
     height: float = Field(gt=0)
     text: str = ""
     parent: str | None = Field(default=None, pattern=SEMANTIC_ID_PATTERN)
+    data: dict[str, str] = Field(default_factory=dict)
     ports: list[PortSpec] = Field(default_factory=list)
     style: ShapeStyle
+
+    @field_validator("data")
+    @classmethod
+    def valid_shape_data(cls, value: dict[str, str]) -> dict[str, str]:
+        invalid = sorted(key for key in value if re.fullmatch(SEMANTIC_ID_PATTERN, key) is None)
+        if invalid:
+            raise ValueError(
+                "shape data keys must be stable semantic identifiers: " + ", ".join(invalid)
+            )
+        reserved = sorted(set(value) & {"SemanticID", "Role", "ParentSemanticID", "Source", "Target"})
+        if reserved:
+            raise ValueError("shape data keys are reserved: " + ", ".join(reserved))
+        return value
 
     @model_validator(mode="after")
     def valid_geometry_and_ports(self) -> ShapeSpec:
@@ -135,8 +149,22 @@ class Scene(StrictModel):
     revision: int = Field(ge=1)
     page: PageSpec
     theme: ThemeSpec
+    metadata: dict[str, str] = Field(default_factory=dict)
     shapes: list[ShapeSpec]
     connectors: list[ConnectorSpec] = Field(default_factory=list)
+
+    @field_validator("metadata")
+    @classmethod
+    def valid_metadata(cls, value: dict[str, str]) -> dict[str, str]:
+        invalid = sorted(key for key in value if re.fullmatch(SEMANTIC_ID_PATTERN, key) is None)
+        if invalid:
+            raise ValueError(
+                "scene metadata keys must be stable semantic identifiers: " + ", ".join(invalid)
+            )
+        reserved = sorted(set(value) & {"SceneID", "SceneSchema", "SceneHash"})
+        if reserved:
+            raise ValueError("scene metadata keys are reserved: " + ", ".join(reserved))
+        return value
 
     @model_validator(mode="after")
     def semantic_integrity(self) -> Scene:
@@ -252,7 +280,19 @@ class EditRequest(StrictModel):
 
 def canonical_data(model: BaseModel | dict[str, Any]) -> dict[str, Any]:
     if isinstance(model, BaseModel):
-        return model.model_dump(mode="json", exclude_none=True)
+        data = model.model_dump(mode="json", exclude_none=True)
+        # Optional provenance was added after schema 1.0 shipped. Empty values are
+        # omitted from canonical hashes so existing scenes and stale-bound edit
+        # requests retain their original identity.
+        if isinstance(model, Scene):
+            if not data.get("metadata"):
+                data.pop("metadata", None)
+            for shape in data.get("shapes", []):
+                if not shape.get("data"):
+                    shape.pop("data", None)
+        elif isinstance(model, ShapeSpec) and not data.get("data"):
+            data.pop("data", None)
+        return data
     return model
 
 

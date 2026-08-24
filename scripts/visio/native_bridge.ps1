@@ -41,6 +41,14 @@ function Add-ShapeData {
     Set-CellFormula $Shape "Prop.$RowName.Value" (Convert-ToVisioStringFormula $Value)
 }
 
+function Add-MetadataRows {
+    param([object]$Shape, [object]$Metadata)
+    if ($null -eq $Metadata) { return }
+    foreach ($property in $Metadata.PSObject.Properties) {
+        Add-ShapeData $Shape ([string]$property.Name) ([string]$property.Name) ([string]$property.Value)
+    }
+}
+
 function Get-ShapeDataValue {
     param([object]$Shape, [string]$RowName)
     if (-not $Shape.CellExistsU("Prop.$RowName.Value", 0)) { return $null }
@@ -209,6 +217,7 @@ try {
         Add-ShapeData $page.PageSheet "SceneID" "Scene ID" ([string]$sceneObject.scene_id)
         Add-ShapeData $page.PageSheet "SceneSchema" "Scene schema" ([string]$sceneObject.schema_version)
         Add-ShapeData $page.PageSheet "SceneHash" "Scene SHA-256" $SceneHash
+        Add-MetadataRows $page.PageSheet $sceneObject.metadata
         $shapes = @{}
         foreach ($item in $sceneObject.shapes) {
             $x1 = [double]$item.x * $scaleX
@@ -228,6 +237,7 @@ try {
             if ($null -ne $item.parent) {
                 Add-ShapeData $shape "ParentSemanticID" "Parent semantic ID" ([string]$item.parent)
             }
+            Add-MetadataRows $shape $item.data
             Add-Ports $shape @($item.ports)
             $shapes[[string]$item.id] = $shape
         }

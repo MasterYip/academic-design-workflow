@@ -77,6 +77,33 @@ def test_scene_rejects_unknown_style_role():
         Scene.model_validate(data)
 
 
+def test_scene_accepts_auditable_metadata_and_rejects_reserved_or_invalid_keys():
+    data = scene_data()
+    data["metadata"] = {"SourceScript": "fig.py", "SourceSHA256": "abc"}
+    data["shapes"][1]["data"] = {"SourceText": r"$x_0$", "SourceLine": "42"}
+    current = Scene.model_validate(data)
+    assert current.metadata["SourceScript"] == "fig.py"
+    assert current.shapes[1].data["SourceText"] == r"$x_0$"
+
+    invalid = deepcopy(data)
+    invalid["shapes"][1]["data"] = {"bad key": "value"}
+    with pytest.raises(ValidationError, match="shape data keys"):
+        Scene.model_validate(invalid)
+
+    reserved = deepcopy(data)
+    reserved["metadata"] = {"SceneHash": "shadow"}
+    with pytest.raises(ValidationError, match="scene metadata keys are reserved"):
+        Scene.model_validate(reserved)
+
+
+def test_empty_provenance_fields_preserve_schema_1_0_hashes():
+    current = scene()
+    request = EditRequest.model_validate(json.loads(EXAMPLE_EDIT.read_text(encoding="utf-8")))
+    assert current.metadata == {}
+    assert all(shape.data == {} for shape in current.shapes)
+    assert semantic_sha256(current) == request.base_scene_sha256
+
+
 def test_edit_rejects_stale_scene_and_stale_element():
     current = scene()
     stale_scene = request_for(current, "condition_encoder", {"x": 3.0}, scene_hash="0" * 64)

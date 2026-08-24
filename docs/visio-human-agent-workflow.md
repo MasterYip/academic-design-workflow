@@ -25,9 +25,14 @@ Scene schema `1.0` contains:
   space, and physical page size;
 - semantic color roles and a font family;
 - native shapes with globally unique semantic IDs, roles, geometry, text,
-  optional shallow parent IDs, named normalized ports, and styles;
+  optional shallow parent IDs, named normalized ports, styles, and validated
+  string Shape Data for source provenance or original equation text;
 - native connectors with globally unique IDs, explicit source/target shape and
   port IDs, optional routes, and connector styles.
+
+Scenes may also carry validated string metadata. The bridge stores scene metadata
+on the page sheet and per-shape `data` on the corresponding native object. Keys
+must be stable semantic identifiers and cannot shadow workflow-reserved rows.
 
 Validation rejects extra fields, duplicate IDs, invalid or out-of-page geometry,
 unknown color roles, duplicate/missing ports, dangling endpoints/parents, and

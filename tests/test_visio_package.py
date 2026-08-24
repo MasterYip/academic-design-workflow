@@ -14,6 +14,7 @@ PAGE_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
       <Section N="Property">
         <Row N="SemanticID"><Cell N="Value" V="block_a"/></Row>
         <Row N="Role"><Cell N="Value" V="graph_node"/></Row>
+        <Row N="SourceText"><Cell N="Value" V="$x_0$"/></Row>
       </Section>
       <Text>Block A</Text>
     </Shape>
@@ -60,6 +61,7 @@ def test_offline_package_audit_proves_native_semantic_content(tmp_path):
     assert audit["media_parts"] == []
     assert audit["duplicate_semantic_ids"] == []
     assert audit["page_shape_data"]["SceneHash"] == "abc123"
+    assert audit["shapes"][0]["shape_data"]["SourceText"] == "$x_0$"
     assert audit["native_semantic_pass"] is True
     assert audit["native_semantic_violations"] == []
 

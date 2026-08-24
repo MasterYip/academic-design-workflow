@@ -71,6 +71,7 @@ def _shape_inventory(root: ET.Element) -> list[dict[str, Any]]:
                 "parent_semantic_id": data.get("ParentSemanticID"),
                 "source": data.get("Source"),
                 "target": data.get("Target"),
+                "shape_data": data,
                 "text": text,
                 "geometry": {
                     name: _cell_value(shape, name)
@@ -212,6 +213,7 @@ def diff_audits(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]
                 "one_d",
                 "role",
                 "parent_semantic_id",
+                "shape_data",
                 "text",
                 "geometry",
                 "style",
