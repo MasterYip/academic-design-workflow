@@ -7,6 +7,7 @@ snapshots produced before and after a human editing pass.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import re
@@ -72,7 +73,7 @@ class Asset(BaseModel):
     id: str
     kind: Literal["video", "audio", "image", "data"]
     path: str
-    sha256: str | None = None
+    sha256: str | None = Field(default=None, pattern=r"^[0-9a-fA-F]{64}$")
     ownership: Ownership = Ownership.HUMAN
     source_anchor: Anchor | None = None
 
@@ -186,6 +187,168 @@ class AEProject(BaseModel):
 
 def load_project(path: str | Path) -> AEProject:
     return AEProject.model_validate_json(Path(path).read_text(encoding="utf-8"))
+
+
+class AEPreflightError(ValueError):
+    """A fail-closed native handoff or render precondition was not satisfied."""
+
+
+def file_sha256(path: str | Path) -> str:
+    """Hash a durable AE revision or linked asset without loading it into memory."""
+
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def guard_revision(
+    source_project: str | Path,
+    expected_source_sha256: str,
+    output_project: str | Path,
+) -> dict[str, str]:
+    """Require an immutable, hash-matched source and a fresh output revision path."""
+
+    source = Path(source_project).resolve()
+    output = Path(output_project).resolve()
+    if not source.is_file():
+        raise AEPreflightError(f"source revision does not exist: {source}")
+    if source == output:
+        raise AEPreflightError("source and output revisions must use different paths")
+    if output.exists():
+        raise AEPreflightError(f"refusing to overwrite existing revision: {output}")
+    if not output.parent.is_dir():
+        raise AEPreflightError(f"output directory does not exist: {output.parent}")
+    expected = expected_source_sha256.lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        raise AEPreflightError("expected source SHA-256 must contain 64 hexadecimal characters")
+    actual = file_sha256(source)
+    if actual != expected:
+        raise AEPreflightError(
+            f"stale source revision hash: expected {expected}, found {actual} for {source}"
+        )
+    return {
+        "source_project": str(source),
+        "source_sha256": actual,
+        "output_project": str(output),
+        "status": "pass",
+    }
+
+
+def preflight_project(
+    project: AEProject,
+    manifest_dir: str | Path,
+    project_output: str | Path,
+    report_output: str | Path,
+    *,
+    source_project: str | Path | None = None,
+    expected_source_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Verify assets and immutable output/revision guards before launching AE."""
+
+    manifest_dir = Path(manifest_dir).resolve()
+    project_path = Path(project_output).resolve()
+    report_path = Path(report_output).resolve()
+    if project_path == report_path:
+        raise AEPreflightError("project and inspection report outputs must use different paths")
+    for label, output in (("project", project_path), ("report", report_path)):
+        if output.exists():
+            raise AEPreflightError(f"refusing to overwrite existing {label} output: {output}")
+        if not output.parent.is_dir():
+            raise AEPreflightError(f"{label} output directory does not exist: {output.parent}")
+
+    asset_rows: list[dict[str, Any]] = []
+    for asset in sorted(project.assets, key=lambda item: item.id):
+        path = Path(asset.path)
+        if not path.is_absolute():
+            path = (manifest_dir / path).resolve()
+        if not path.is_file():
+            raise AEPreflightError(f"missing asset {asset.id}: {path}")
+        actual = file_sha256(path)
+        if asset.sha256 and actual != asset.sha256.lower():
+            raise AEPreflightError(
+                f"asset hash mismatch for {asset.id}: expected {asset.sha256.lower()}, "
+                f"found {actual} at {path}"
+            )
+        asset_rows.append(
+            {
+                "id": asset.id,
+                "path": str(path),
+                "sha256": actual,
+                "expected_sha256": asset.sha256.lower() if asset.sha256 else None,
+                "status": "verified" if asset.sha256 else "unpinned",
+            }
+        )
+
+    revision = None
+    if source_project is not None or expected_source_sha256 is not None:
+        if source_project is None or expected_source_sha256 is None:
+            raise AEPreflightError(
+                "source_project and expected_source_sha256 must be supplied together"
+            )
+        revision = guard_revision(source_project, expected_source_sha256, project_path)
+
+    return {
+        "schema_version": "1.0",
+        "status": "pass",
+        "project_id": project.project_id,
+        "manifest_dir": str(manifest_dir),
+        "assets": asset_rows,
+        "outputs": {
+            "project": str(project_path),
+            "report": str(report_path),
+        },
+        "source_revision": revision,
+    }
+
+
+def build_afterfx_script_command(
+    afterfx_executable: str | Path,
+    script: str | Path,
+) -> list[str]:
+    """Return a shell-free argv list for a controlled ``AfterFX.exe -r`` run."""
+
+    executable = Path(afterfx_executable).resolve()
+    script_path = Path(script).resolve()
+    if not executable.is_file():
+        raise AEPreflightError(f"After Effects executable does not exist: {executable}")
+    if not script_path.is_file():
+        raise AEPreflightError(f"ExtendScript file does not exist: {script_path}")
+    return [str(executable), "-r", str(script_path)]
+
+
+def build_aerender_command(
+    aerender_executable: str | Path,
+    project: str | Path,
+    output: str | Path,
+    *,
+    comp: str | None = None,
+    render_settings: str | None = None,
+    output_module: str | None = None,
+) -> list[str]:
+    """Return fail-closed, shell-free aerender argv without missing-footage bypasses."""
+
+    executable = Path(aerender_executable).resolve()
+    project_path = Path(project).resolve()
+    output_path = Path(output).resolve()
+    if not executable.is_file():
+        raise AEPreflightError(f"aerender executable does not exist: {executable}")
+    if not project_path.is_file():
+        raise AEPreflightError(f"After Effects project does not exist: {project_path}")
+    if output_path.exists():
+        raise AEPreflightError(f"refusing to overwrite existing render: {output_path}")
+    if not output_path.parent.is_dir():
+        raise AEPreflightError(f"render output directory does not exist: {output_path.parent}")
+    command = [str(executable), "-project", str(project_path)]
+    if comp:
+        command += ["-comp", comp]
+    if render_settings:
+        command += ["-RStemplate", render_settings]
+    if output_module:
+        command += ["-OMtemplate", output_module]
+    command += ["-output", str(output_path)]
+    return command
 
 
 def canonical_project(project: AEProject) -> dict[str, Any]:
@@ -402,6 +565,30 @@ _JSX_INSPECTION_HELPERS = r'''
     }
     return encode(value, 0);
   }
+  function adwWriteNewTextFile(path, payload, label) {
+    var file = new File(path);
+    if (file.exists) throw new Error("Refusing to overwrite existing " + label + ": " + path);
+    if (!file.parent.exists) throw new Error("Missing output directory for " + label + ": " + file.parent.fsName);
+    file.encoding = "UTF-8";
+    if (!file.open("w")) throw new Error(
+      "Cannot write " + label + ": " + file.error +
+      ". Enable Preferences > Scripting & Expressions > Allow Scripts to Write Files and Access Network"
+    );
+    file.write(payload);
+    file.close();
+  }
+  function adwPreflightWritableNewFile(path, label) {
+    var file = new File(path);
+    if (file.exists) throw new Error("Refusing to overwrite existing " + label + ": " + path);
+    if (!file.parent.exists) throw new Error("Missing output directory for " + label + ": " + file.parent.fsName);
+    file.encoding = "UTF-8";
+    if (!file.open("w")) throw new Error(
+      "Cannot preflight " + label + ": " + file.error +
+      ". Enable Preferences > Scripting & Expressions > Allow Scripts to Write Files and Access Network"
+    );
+    file.close();
+    if (!file.remove()) throw new Error("Cannot remove temporary " + label + " preflight file: " + file.error);
+  }
   function simpleValue(value) {
     if (value === null || value === undefined) return null;
     if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return value;
@@ -541,17 +728,17 @@ def generate_build_jsx(
 {_JSX_INSPECTION_HELPERS}
   function writeReport(project) {{
     var report = snapshotProject(project, SPEC.project_id);
-    var file = new File(REPORT_OUTPUT); file.encoding="UTF-8";
-    if (!file.open("w")) throw new Error("Cannot open report output: " + file.error);
-    file.write(adwStringify(report, 2)); file.close();
+    adwWriteNewTextFile(REPORT_OUTPUT, adwStringify(report, 2), "inspection report");
   }}
   app.beginUndoGroup("ADW build " + SPEC.project_id);
   try {{
     if (app.project && (app.project.file !== null || app.project.numItems > 0)) throw new Error("Builder requires a blank unsaved project; it will not replace an open project");
-    if (!app.project) app.newProject();
-    var project = app.project;
     var projectOutputFile = new File(PROJECT_OUTPUT);
     if (projectOutputFile.exists) throw new Error("Refusing to overwrite existing project: " + PROJECT_OUTPUT);
+    if (!projectOutputFile.parent.exists) throw new Error("Missing project output directory: " + projectOutputFile.parent.fsName);
+    adwPreflightWritableNewFile(REPORT_OUTPUT, "inspection report");
+    if (!app.project) app.newProject();
+    var project = app.project;
     var markerFolder = project.items.addFolder("__ADW_PROJECT__" + SPEC.project_id);
     markerFolder.comment = tag(SPEC.project_id, "shared");
     var assetItems = {{}};
@@ -572,8 +759,8 @@ def generate_build_jsx(
     main.comment=tag(SPEC.project_id + ".main", "shared"); main.bgColor=SPEC.background;
     for (var m=SPEC.scenes.length-1; m>=0; m--) {{ var sc=SPEC.scenes[m]; var sl=main.layers.add(sceneComps[sc.id]); sl.name=sc.name; sl.comment=tag(sc.id + ".instance", sc.ownership); sl.startTime=sc.start; sl.inPoint=sc.start; sl.outPoint=sc.start+sc.duration; }}
     project.renderQueue.items.add(main);
-    writeReport(project);
     project.save(projectOutputFile);
+    writeReport(project);
   }} catch (error) {{
     var errorDetail = error.toString();
     try {{ if (error.line !== undefined) errorDetail += " at line " + error.line; }} catch (_) {{}}
@@ -597,7 +784,7 @@ def generate_inspect_jsx(report_output: str | Path) -> str:
   var project=app.project; var projectId=null;
   for(var i=1;i<=project.numItems;i++){{var item=project.item(i);if(item.name.indexOf("__ADW_PROJECT__")===0){{projectId=item.name.substring(15);break;}}}}
   var report=snapshotProject(project,projectId);
-  var file=new File(OUTPUT);file.encoding="UTF-8";if(!file.open("w"))throw new Error("Cannot open report: "+file.error);file.write(adwStringify(report,2));file.close();
+  adwWriteNewTextFile(OUTPUT, adwStringify(report,2), "inspection report");
 }})();
 '''
 
