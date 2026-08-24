@@ -96,7 +96,11 @@ def _shape_inventory(root: ET.Element) -> list[dict[str, Any]]:
     return inventory
 
 
-def audit_vsdx(path: str | Path) -> dict[str, Any]:
+def audit_vsdx(
+    path: str | Path,
+    *,
+    allowed_office_math_semantic_ids: tuple[str, ...] = (),
+) -> dict[str, Any]:
     """Audit VSDX structure without opening Visio or mutating the package."""
     candidate = Path(path)
     if not candidate.is_file():
@@ -145,12 +149,30 @@ def audit_vsdx(path: str | Path) -> dict[str, Any]:
     foreign_shapes = [shape for shape in shapes if shape["type"] == "Foreign"]
     connectors = [shape for shape in shapes if shape["one_d"] or shape["source"]]
     native_shapes = [shape for shape in shapes if shape["type"] not in {"Group", "Foreign"}]
+    allowed_math = set(allowed_office_math_semantic_ids)
+    foreign_ids = {shape["semantic_id"] for shape in foreign_shapes if shape["semantic_id"]}
+    office_math_exception = bool(allowed_math) and foreign_ids == allowed_math
+    if office_math_exception:
+        office_math_exception = (
+            len(foreign_shapes) == len(allowed_math)
+            and foreign_data_records == len(allowed_math)
+            and len(media_parts) == len(allowed_math)
+            and all(name.lower().endswith(".emf") for name in media_parts)
+            and import_named_parts == media_parts
+            and all(
+                shape["role"] == "office_math"
+                and shape["shape_data"].get("OfficeMathProgID") == "Word.Document.12"
+                and shape["shape_data"].get("OfficeMathEditable") == "true"
+                and shape["shape_data"].get("SourceText")
+                for shape in foreign_shapes
+            )
+        )
     violations = []
     if groups:
         violations.append(f"contains {len(groups)} group records")
-    if foreign_shapes or foreign_data_records:
+    if (foreign_shapes or foreign_data_records) and not office_math_exception:
         violations.append("contains foreign shapes or ForeignData")
-    if media_parts or import_named_parts:
+    if (media_parts or import_named_parts) and not office_math_exception:
         violations.append("contains media or import/image-named package parts")
     if duplicate_semantic_ids:
         violations.append("contains duplicate semantic IDs")
@@ -170,6 +192,8 @@ def audit_vsdx(path: str | Path) -> dict[str, Any]:
         "group_records": len(groups),
         "foreign_shape_records": len(foreign_shapes),
         "foreign_data_records": foreign_data_records,
+        "allowed_office_math_semantic_ids": sorted(allowed_math),
+        "office_math_exception_applied": office_math_exception,
         "media_parts": media_parts,
         "import_or_image_named_parts": import_named_parts,
         "semantic_shape_records": len(semantic_ids),

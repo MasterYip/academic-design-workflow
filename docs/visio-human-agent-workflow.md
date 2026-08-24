@@ -114,6 +114,21 @@ never overwritten.
 4. Agent reviews the before/after previews, change record, package audit, and
    semantic diff. The audit must retain native shapes, two glue relations per
    connector, unique semantic IDs, and zero foreign/media content.
+
+### Structured Office Math exception
+
+Visio does not expose the modern Office Math editor as a native Visio text
+surface. When an equation must remain professionally typeset and structurally
+editable, generate a small `Word.Document.12` DOCX containing OMML and use
+`scripts/visio/embed_office_math.ps1` to replace a semantic placeholder through
+Visio `InsertFromFile`. Never use deprecated `Equation.3`.
+
+This route necessarily stores a `ForeignData` OLE shape and one EMF display
+cache per embedded equation. Call `audit_vsdx(...,
+allowed_office_math_semantic_ids=(...))` with the exact equation semantic IDs;
+the auditor accepts only matching `office_math` shapes with `Word.Document.12`,
+editable/source metadata, one ForeignData record, and one EMF cache per ID. All
+other shapes remain subject to the zero-foreign/media gate.
 5. Accepted geometry is back-ported to the canonical scene/publication source.
    Do not treat arbitrary unrecorded VSDX manipulation as automatic round trip.
 

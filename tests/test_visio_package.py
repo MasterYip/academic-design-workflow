@@ -77,3 +77,29 @@ def test_semantic_package_diff_reports_only_changed_geometry(tmp_path):
     assert [change["semantic_id"] for change in result["changed"]] == ["block_a"]
     assert result["connects_added"] == []
     assert result["connects_removed"] == []
+
+
+def test_office_math_exception_is_exact_and_narrow(tmp_path):
+    path = tmp_path / "office-math.vsdx"
+    page = """<?xml version="1.0" encoding="UTF-8"?>
+    <PageContents xmlns="http://schemas.microsoft.com/office/visio/2012/main">
+      <Shapes><Shape ID="1" NameU="equation" Type="Foreign">
+        <Section N="Property">
+          <Row N="SemanticID"><Cell N="Value" V="equation"/></Row>
+          <Row N="Role"><Cell N="Value" V="office_math"/></Row>
+          <Row N="SourceText"><Cell N="Value" V="$x/y$"/></Row>
+          <Row N="OfficeMathProgID"><Cell N="Value" V="Word.Document.12"/></Row>
+          <Row N="OfficeMathEditable"><Cell N="Value" V="true"/></Row>
+        </Section><ForeignData/></Shape></Shapes>
+    </PageContents>"""
+    with zipfile.ZipFile(path, "w") as package:
+        package.writestr("[Content_Types].xml", "<Types/>")
+        package.writestr("visio/pages/page1.xml", page)
+        package.writestr("visio/media/image1.emf", b"preview")
+    strict = audit_vsdx(path)
+    assert strict["native_semantic_pass"] is False
+    allowed = audit_vsdx(path, allowed_office_math_semantic_ids=("equation",))
+    assert allowed["office_math_exception_applied"] is True
+    assert allowed["native_semantic_pass"] is True
+    wrong = audit_vsdx(path, allowed_office_math_semantic_ids=("other",))
+    assert wrong["native_semantic_pass"] is False
