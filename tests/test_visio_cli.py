@@ -21,6 +21,8 @@ def test_default_bridge_is_repository_local_and_contains_no_import_pipeline():
     source = bridge.read_text(encoding="utf-8").lower()
     forbidden = ("page.import", "addpicture", "foreignobject", ".svg", ".pdf", ".emf")
     assert not any(token in source for token in forbidden)
+    assert "charprops(7)" in source
+    assert source.index('role\") -eq \"panel\"') < source.index('role\") -eq \"canvas\"')
 
 
 def test_console_json_is_ascii_safe_on_legacy_windows_code_pages(capsys):

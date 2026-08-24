@@ -27,6 +27,8 @@ Scene schema `1.0` contains:
 - native shapes with globally unique semantic IDs, roles, geometry, text,
   optional shallow parent IDs, named normalized ports, styles, and validated
   string Shape Data for source provenance or original equation text;
+- optional non-overlapping half-open `text_runs` that retain one selectable
+  native shape while giving title/detail ranges distinct point sizes and weights;
 - native connectors with globally unique IDs, explicit source/target shape and
   port IDs, optional routes, and connector styles.
 
@@ -36,7 +38,8 @@ must be stable semantic identifiers and cannot shadow workflow-reserved rows.
 
 Validation rejects extra fields, duplicate IDs, invalid or out-of-page geometry,
 unknown color roles, duplicate/missing ports, dangling endpoints/parents, and
-hierarchy cycles. Emit the machine-readable current contract with:
+hierarchy cycles. Text runs must be ordered, non-overlapping, and remain within
+the native text length. Emit the machine-readable current contract with:
 
 ```powershell
 adw visio schema --output scene-v1.schema.json
@@ -129,6 +132,8 @@ path. Package `audit` and `diff` are read-only and never launch Visio.
 - Visio-native Unicode math remains editable but does not match a TeX renderer's
   italic metrics and spacing.
 - Connector routing and arrowheads can differ modestly from Matplotlib/SVG.
+- Generation orders native objects as canvas, panel fills, connectors, then
+  ordinary content so causal routes remain visible without crossing block text.
 - Compound widgets are represented as shallow semantic children, not a general
   constraint solver or automatic two-way VSDX-to-Python reconstruction.
 - The bridge currently supports rectangles, rounded rectangles, ellipses, text,

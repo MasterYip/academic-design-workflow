@@ -104,6 +104,32 @@ def test_empty_provenance_fields_preserve_schema_1_0_hashes():
     assert semantic_sha256(current) == request.base_scene_sha256
 
 
+def test_native_text_runs_are_validated_and_empty_runs_preserve_hashes():
+    current = scene()
+    baseline_hash = semantic_sha256(current)
+    assert all(shape.text_runs == [] for shape in current.shapes)
+    assert semantic_sha256(current) == baseline_hash
+
+    data = scene_data()
+    target = data["shapes"][1]
+    target["text_runs"] = [
+        {"start": 0, "end": 9, "font_size_pt": 8.0, "font_weight": 700},
+        {"start": 10, "end": len(target["text"]), "font_size_pt": 7.0},
+    ]
+    parsed = Scene.model_validate(data)
+    assert parsed.shapes[1].text_runs[0].font_weight == 700
+
+    overlapping = deepcopy(data)
+    overlapping["shapes"][1]["text_runs"][1]["start"] = 8
+    with pytest.raises(ValidationError, match="overlapping text runs"):
+        Scene.model_validate(overlapping)
+
+    out_of_bounds = deepcopy(data)
+    out_of_bounds["shapes"][1]["text_runs"][1]["end"] = 999
+    with pytest.raises(ValidationError, match="text run exceeds text length"):
+        Scene.model_validate(out_of_bounds)
+
+
 def test_edit_rejects_stale_scene_and_stale_element():
     current = scene()
     stale_scene = request_for(current, "condition_encoder", {"x": 3.0}, scene_hash="0" * 64)

@@ -76,6 +76,21 @@ class ShapeStyle(StrictModel):
     align: Literal["left", "center", "right"] = "center"
 
 
+class TextRun(StrictModel):
+    """A half-open native text range with local size and weight overrides."""
+
+    start: int = Field(ge=0)
+    end: int = Field(gt=0)
+    font_size_pt: float = Field(gt=0)
+    font_weight: int = Field(default=400, ge=100, le=900)
+
+    @model_validator(mode="after")
+    def ordered(self) -> TextRun:
+        if self.end <= self.start:
+            raise ValueError("text run end must be greater than start")
+        return self
+
+
 class ConnectorStyle(StrictModel):
     stroke_role: str
     line_width_pt: float = Field(default=0.9, gt=0)
@@ -95,6 +110,7 @@ class ShapeSpec(StrictModel):
     parent: str | None = Field(default=None, pattern=SEMANTIC_ID_PATTERN)
     data: dict[str, str] = Field(default_factory=dict)
     ports: list[PortSpec] = Field(default_factory=list)
+    text_runs: list[TextRun] = Field(default_factory=list)
     style: ShapeStyle
 
     @field_validator("data")
@@ -119,6 +135,12 @@ class ShapeSpec(StrictModel):
         duplicates = sorted({name for name in names if names.count(name) > 1})
         if duplicates:
             raise ValueError(f"shape {self.id!r} has duplicate ports: {', '.join(duplicates)}")
+        ordered_runs = sorted(self.text_runs, key=lambda run: (run.start, run.end))
+        for index, run in enumerate(ordered_runs):
+            if run.end > len(self.text):
+                raise ValueError(f"shape {self.id!r} text run exceeds text length")
+            if index and ordered_runs[index - 1].end > run.start:
+                raise ValueError(f"shape {self.id!r} has overlapping text runs")
         return self
 
 
@@ -290,8 +312,13 @@ def canonical_data(model: BaseModel | dict[str, Any]) -> dict[str, Any]:
             for shape in data.get("shapes", []):
                 if not shape.get("data"):
                     shape.pop("data", None)
-        elif isinstance(model, ShapeSpec) and not data.get("data"):
-            data.pop("data", None)
+                if not shape.get("text_runs"):
+                    shape.pop("text_runs", None)
+        elif isinstance(model, ShapeSpec):
+            if not data.get("data"):
+                data.pop("data", None)
+            if not data.get("text_runs"):
+                data.pop("text_runs", None)
         return data
     return model
 

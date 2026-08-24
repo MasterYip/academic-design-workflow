@@ -122,6 +122,14 @@ function Set-ShapeStyle {
     $characters.Begin = 0
     $characters.End = [int]$characters.CharCount
     $characters.CharProps(2) = $(if ([int]$Item.style.font_weight -ge 600) { 1 } else { 0 })
+    if ($Item.PSObject.Properties.Name -contains "text_runs") {
+        foreach ($run in @($Item.text_runs)) {
+            $characters.Begin = [int]$run.start
+            $characters.End = [int]$run.end
+            $characters.CharProps(7) = [int][Math]::Round([double]$run.font_size_pt)
+            $characters.CharProps(2) = $(if ([int]$run.font_weight -ge 600) { 1 } else { 0 })
+        }
+    }
 }
 
 function Set-ConnectorStyle {
@@ -272,6 +280,14 @@ try {
             $connectors[[string]$item.id] = $connector
         }
         foreach ($connector in $connectors.Values) { [void]$connector.SendToBack() }
+        # Panel fills are below causal routes, while ordinary blocks remain above
+        # them.  Sending panels behind connectors before sending the canvas last
+        # establishes canvas < panels < connectors < content without grouping.
+        foreach ($shape in $shapes.Values) {
+            if ((Get-ShapeDataValue $shape "Role") -eq "panel") {
+                [void]$shape.SendToBack()
+            }
+        }
         foreach ($shape in $shapes.Values) {
             if ((Get-ShapeDataValue $shape "Role") -eq "canvas") {
                 [void]$shape.SendToBack()
