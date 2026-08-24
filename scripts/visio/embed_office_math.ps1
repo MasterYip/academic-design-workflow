@@ -22,6 +22,12 @@ function Get-ActiveProcessIds([string]$Name) {
     return @(Get-Process $Name -ErrorAction SilentlyContinue | Where-Object { $_.Threads.Count -gt 0 } | Select-Object -ExpandProperty Id | Sort-Object)
 }
 
+function Test-ProcessIdSetEqual($Left, $Right) {
+    # Compare the already sorted ID inventories as stable strings. Unlike
+    # Compare-Object, this remains well-defined when either set is empty.
+    return ((@($Left) -join ',') -eq (@($Right) -join ','))
+}
+
 $inputPath = [IO.Path]::GetFullPath($InputVsdx)
 $outputPath = [IO.Path]::GetFullPath($OutputVsdx)
 $manifestPath = [IO.Path]::GetFullPath($Manifest)
@@ -99,7 +105,7 @@ finally {
     $afterWord=Get-ActiveProcessIds 'WINWORD'
     $result.process.after_visio=$afterVisio;$result.process.after_word=$afterWord
     $result.process.exited_owned_records=@(Get-Process VISIO -ErrorAction SilentlyContinue | Where-Object { $_.Id -in $result.process.owned_visio -and $_.Threads.Count -eq 0 } | ForEach-Object { [ordered]@{id=$_.Id;handle_count=$_.HandleCount;thread_count=$_.Threads.Count} })
-    $result.process.preserved=(Compare-Object $beforeVisio $afterVisio).Count -eq 0 -and (Compare-Object $beforeWord $afterWord).Count -eq 0
+    $result.process.preserved=(Test-ProcessIdSetEqual $beforeVisio $afterVisio) -and (Test-ProcessIdSetEqual $beforeWord $afterWord)
 }
 if($failure){throw $failure}
 if(-not $result.process.preserved){throw "Office process set changed: Visio $($beforeVisio -join ',') -> $($result.process.after_visio -join ','); Word $($beforeWord -join ',') -> $($result.process.after_word -join ',')"}
