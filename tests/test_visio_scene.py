@@ -137,13 +137,25 @@ def test_optional_native_rotation_is_finite_and_zero_preserves_hashes():
     assert semantic_sha256(current) == baseline_hash
 
     data = scene_data()
-    data["shapes"][1]["rotation_deg"] = 90
-    assert Scene.model_validate(data).shapes[1].rotation_deg == 90
+    interior = next(shape for shape in data["shapes"] if shape["id"] == "condition_encoder")
+    interior["rotation_deg"] = 90
+    assert Scene.model_validate(data).element("condition_encoder").rotation_deg == 90
 
     invalid = scene_data()
     invalid["shapes"][1]["rotation_deg"] = float("inf")
     with pytest.raises(ValidationError, match="geometry must be finite"):
         Scene.model_validate(invalid)
+
+    rotated_edge = scene_data()
+    rotated_edge["shapes"][1].update(
+        {"x": -0.3, "y": 2.0, "width": 1.0, "height": 0.2, "rotation_deg": 90}
+    )
+    assert Scene.model_validate(rotated_edge).shapes[1].rotation_deg == 90
+
+    truly_outside = deepcopy(rotated_edge)
+    truly_outside["shapes"][1]["x"] = -1.0
+    with pytest.raises(ValidationError, match="starts outside"):
+        Scene.model_validate(truly_outside)
 
 
 def test_edit_rejects_stale_scene_and_stale_element():

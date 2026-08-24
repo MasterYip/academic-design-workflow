@@ -199,11 +199,21 @@ class Scene(StrictModel):
         shapes = {shape.id: shape for shape in self.shapes}
         color_roles = set(self.theme.colors)
         for shape in self.shapes:
-            if shape.x < 0 or shape.y < 0:
+            angle = math.radians(shape.rotation_deg)
+            scale_x = self.page.width_in / self.page.coordinate_width
+            scale_y = self.page.height_in / self.page.coordinate_height
+            center_x = (shape.x + shape.width / 2) * scale_x
+            center_y = (shape.y + shape.height / 2) * scale_y
+            physical_w = shape.width * scale_x
+            physical_h = shape.height * scale_y
+            bound_w = abs(physical_w * math.cos(angle)) + abs(physical_h * math.sin(angle))
+            bound_h = abs(physical_w * math.sin(angle)) + abs(physical_h * math.cos(angle))
+            tolerance = 1e-8
+            if center_x - bound_w / 2 < -tolerance or center_y - bound_h / 2 < -tolerance:
                 raise ValueError(f"shape {shape.id!r} starts outside the coordinate space")
-            if shape.x + shape.width > self.page.coordinate_width:
+            if center_x + bound_w / 2 > self.page.width_in + tolerance:
                 raise ValueError(f"shape {shape.id!r} exceeds page coordinate width")
-            if shape.y + shape.height > self.page.coordinate_height:
+            if center_y + bound_h / 2 > self.page.height_in + tolerance:
                 raise ValueError(f"shape {shape.id!r} exceeds page coordinate height")
             used_roles = {
                 shape.style.fill_role,
