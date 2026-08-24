@@ -18,6 +18,10 @@ function Add-ShapeData($Shape, [string]$Name, [string]$Label, [string]$Value) {
     $Shape.CellsU("Prop.$Name.Value").FormulaU = Quote-ShapeSheetString $Value
 }
 
+function Get-ActiveProcessIds([string]$Name) {
+    return @(Get-Process $Name -ErrorAction SilentlyContinue | Where-Object { $_.Threads.Count -gt 0 } | Select-Object -ExpandProperty Id | Sort-Object)
+}
+
 $inputPath = [IO.Path]::GetFullPath($InputVsdx)
 $outputPath = [IO.Path]::GetFullPath($OutputVsdx)
 $manifestPath = [IO.Path]::GetFullPath($Manifest)
@@ -30,15 +34,18 @@ $config = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ([string]$config.schema_version -ne '1.0') { throw 'Unsupported Office Math manifest schema' }
 if (@($config.replacements).Count -lt 1) { throw 'Office Math manifest has no replacements' }
 
-$beforeVisio = @(Get-Process VISIO -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id | Sort-Object)
-$beforeWord = @(Get-Process WINWORD -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id | Sort-Object)
+$beforeVisio = Get-ActiveProcessIds 'VISIO'
+$beforeWord = Get-ActiveProcessIds 'WINWORD'
 $result = [ordered]@{ bridge_version='1.0'; input=$inputPath; output=$outputPath; replacements=@(); process=[ordered]@{before_visio=$beforeVisio;before_word=$beforeWord;owned_visio=@()} }
 $app=$null; $doc=$null; $page=$null; $failure=$null
 try {
-    $app = New-Object -ComObject Visio.InvisibleApp
+    # Visio.Application exits cleanly after Word OLE rendering on supported
+    # hosts; InvisibleApp can leave a zero-thread renderer entry behind.
+    $app = New-Object -ComObject Visio.Application
+    $app.Visible = $false
     $app.AlertResponse = 7
     Start-Sleep -Milliseconds 700
-    $afterCreate = @(Get-Process VISIO -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id | Sort-Object)
+    $afterCreate = Get-ActiveProcessIds 'VISIO'
     $result.process.owned_visio = @($afterCreate | Where-Object { $_ -notin $beforeVisio })
     if ($result.process.owned_visio.Count -ne 1) { throw "Expected one owned Visio process, found $($result.process.owned_visio -join ',')" }
     $doc = $app.Documents.Open($inputPath)
@@ -65,23 +72,33 @@ try {
         $result.replacements += [ordered]@{target_id=$targetId;docx=$docx;progid=[string]$ole.ProgID;class_id=[string]$ole.ClassID;foreign_type=[int]$ole.ForeignType}
     }
     [void]$doc.SaveAs($outputPath)
-    if($Preview){[void]$page.Export([IO.Path]::GetFullPath($Preview))}
     $result.ole_object_count=[int]$page.OLEObjects.Count
-    $doc.Close();$doc=$null
+    $ole=$null;$shape=$null;$placeholder=$null
+    $doc.Close();$doc=$null;$page=$null
+    # Reopen before preview export so Visio consumes the saved Word display
+    # cache at the final geometry instead of exporting its stale insertion
+    # position from the in-memory OLE session.
+    if($Preview){
+        $doc=$app.Documents.Open($outputPath)
+        $page=$doc.Pages.Item(1)
+        [void]$page.Export([IO.Path]::GetFullPath($Preview))
+        $doc.Close();$doc=$null;$page=$null
+    }
 } catch { $failure=$_ }
 finally {
     if($doc){try{$doc.Close()}catch{}}
     if($app){try{$app.Quit()}catch{}}
-    $page=$null;$doc=$null;$app=$null
+    $ole=$null;$shape=$null;$placeholder=$null;$page=$null;$doc=$null;$app=$null
     [GC]::Collect();[GC]::WaitForPendingFinalizers();[GC]::Collect();[GC]::WaitForPendingFinalizers()
     for($attempt=0;$attempt-lt 30;$attempt++){
-        $current=@(Get-Process VISIO -ErrorAction SilentlyContinue|Select-Object -ExpandProperty Id|Sort-Object)
+        $current=Get-ActiveProcessIds 'VISIO'
         if(-not @($result.process.owned_visio|Where-Object{$_ -in $current})){break}
         Start-Sleep -Milliseconds 500
     }
-    $afterVisio=@(Get-Process VISIO -ErrorAction SilentlyContinue|Select-Object -ExpandProperty Id|Sort-Object)
-    $afterWord=@(Get-Process WINWORD -ErrorAction SilentlyContinue|Select-Object -ExpandProperty Id|Sort-Object)
+    $afterVisio=Get-ActiveProcessIds 'VISIO'
+    $afterWord=Get-ActiveProcessIds 'WINWORD'
     $result.process.after_visio=$afterVisio;$result.process.after_word=$afterWord
+    $result.process.exited_owned_records=@(Get-Process VISIO -ErrorAction SilentlyContinue | Where-Object { $_.Id -in $result.process.owned_visio -and $_.Threads.Count -eq 0 } | ForEach-Object { [ordered]@{id=$_.Id;handle_count=$_.HandleCount;thread_count=$_.Threads.Count} })
     $result.process.preserved=(Compare-Object $beforeVisio $afterVisio).Count -eq 0 -and (Compare-Object $beforeWord $afterWord).Count -eq 0
 }
 if($failure){throw $failure}
