@@ -29,6 +29,8 @@ Scene schema `1.0` contains:
   string Shape Data for source provenance or original equation text;
 - optional non-overlapping half-open `text_runs` that retain one selectable
   native shape while giving title/detail ranges distinct point sizes and weights;
+- optional native rotation for ordinary shapes and text, used for vertical axes
+  or diagram vocabulary without introducing groups or foreign artwork;
 - native connectors with globally unique IDs, explicit source/target shape and
   port IDs, optional routes, and connector styles.
 

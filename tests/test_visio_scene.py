@@ -130,6 +130,22 @@ def test_native_text_runs_are_validated_and_empty_runs_preserve_hashes():
         Scene.model_validate(out_of_bounds)
 
 
+def test_optional_native_rotation_is_finite_and_zero_preserves_hashes():
+    current = scene()
+    baseline_hash = semantic_sha256(current)
+    assert all(shape.rotation_deg == 0 for shape in current.shapes)
+    assert semantic_sha256(current) == baseline_hash
+
+    data = scene_data()
+    data["shapes"][1]["rotation_deg"] = 90
+    assert Scene.model_validate(data).shapes[1].rotation_deg == 90
+
+    invalid = scene_data()
+    invalid["shapes"][1]["rotation_deg"] = float("inf")
+    with pytest.raises(ValidationError, match="geometry must be finite"):
+        Scene.model_validate(invalid)
+
+
 def test_edit_rejects_stale_scene_and_stale_element():
     current = scene()
     stale_scene = request_for(current, "condition_encoder", {"x": 3.0}, scene_hash="0" * 64)

@@ -106,6 +106,7 @@ class ShapeSpec(StrictModel):
     y: float
     width: float = Field(gt=0)
     height: float = Field(gt=0)
+    rotation_deg: float = 0
     text: str = ""
     parent: str | None = Field(default=None, pattern=SEMANTIC_ID_PATTERN)
     data: dict[str, str] = Field(default_factory=dict)
@@ -128,7 +129,7 @@ class ShapeSpec(StrictModel):
 
     @model_validator(mode="after")
     def valid_geometry_and_ports(self) -> ShapeSpec:
-        values = (self.x, self.y, self.width, self.height)
+        values = (self.x, self.y, self.width, self.height, self.rotation_deg)
         if any(not math.isfinite(value) for value in values):
             raise ValueError(f"shape {self.id!r} geometry must be finite")
         names = [port.name for port in self.ports]
@@ -314,11 +315,15 @@ def canonical_data(model: BaseModel | dict[str, Any]) -> dict[str, Any]:
                     shape.pop("data", None)
                 if not shape.get("text_runs"):
                     shape.pop("text_runs", None)
+                if not shape.get("rotation_deg"):
+                    shape.pop("rotation_deg", None)
         elif isinstance(model, ShapeSpec):
             if not data.get("data"):
                 data.pop("data", None)
             if not data.get("text_runs"):
                 data.pop("text_runs", None)
+            if not data.get("rotation_deg"):
+                data.pop("rotation_deg", None)
         return data
     return model
 

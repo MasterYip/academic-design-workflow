@@ -156,6 +156,9 @@ function Set-ShapeGeometry {
     Set-CellFormula $Shape "PinY" "$(([double]$Item.y + [double]$Item.height / 2) * $ScaleY) in"
     Set-CellFormula $Shape "Width" "$([double]$Item.width * $ScaleX) in"
     Set-CellFormula $Shape "Height" "$([double]$Item.height * $ScaleY) in"
+    if ($Item.PSObject.Properties.Name -contains "rotation_deg") {
+        Set-CellFormula $Shape "Angle" "$([double]$Item.rotation_deg) deg"
+    }
 }
 
 if (-not (Test-Path -LiteralPath $Scene -PathType Leaf)) { throw "Scene does not exist: $Scene" }
@@ -237,6 +240,7 @@ try {
             } else {
                 $shape = $page.DrawRectangle($x1, $y2, $x2, $y1)
             }
+            Set-ShapeGeometry $shape $item $scaleX $scaleY
             $shape.NameU = [string]$item.id
             $shape.Text = [string]$item.text
             Set-ShapeStyle $shape $item $sceneObject $scaleX
