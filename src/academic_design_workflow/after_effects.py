@@ -87,6 +87,10 @@ class Layer(BaseModel):
     source_anchor: Anchor | None = None
     asset_id: str | None = None
     text: str | None = None
+    text_font: str | None = None
+    text_size: float | None = Field(default=None, gt=0)
+    text_fill: list[float] | None = None
+    text_justification: Literal["left", "center", "right"] | None = None
     shape: Literal["rectangle", "ellipse"] | None = None
     size: list[float] | None = None
     fill: list[float] | None = None
@@ -100,6 +104,20 @@ class Layer(BaseModel):
             raise ValueError(f"{self.kind} layer requires asset_id")
         if self.kind == "text" and self.text is None:
             raise ValueError("text layer requires text")
+        if self.kind != "text" and any(
+            value is not None
+            for value in (
+                self.text_font,
+                self.text_size,
+                self.text_fill,
+                self.text_justification,
+            )
+        ):
+            raise ValueError("text styling is only valid for text layers")
+        if self.text_fill and (
+            len(self.text_fill) != 3 or any(x < 0 or x > 1 for x in self.text_fill)
+        ):
+            raise ValueError("text_fill must be RGB values in [0, 1]")
         if self.kind == "shape" and (not self.shape or not self.size or not self.fill):
             raise ValueError("shape layer requires shape, size, and fill")
         if self.fill and (len(self.fill) not in {3, 4} or any(x < 0 or x > 1 for x in self.fill)):
@@ -333,6 +351,57 @@ def _resolved_spec(project: AEProject, manifest_dir: Path) -> dict[str, Any]:
 
 
 _JSX_INSPECTION_HELPERS = r'''
+  function adwJsonQuote(value) {
+    return '"' + String(value)
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      .replace(/\x08/g, "\\b")
+      .replace(/\f/g, "\\f")
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t")
+      .replace(/[\x00-\x1f\u2028\u2029]/g, function (character) {
+        var code = character.charCodeAt(0).toString(16);
+        return "\\u" + ("0000" + code).slice(-4);
+      }) + '"';
+  }
+  function adwStringify(value, indent) {
+    var step = typeof indent === "number" && indent > 0 ? new Array(indent + 1).join(" ") : "";
+    var stack = [];
+    function encode(current, depth) {
+      if (current === null) return "null";
+      var kind = typeof current;
+      if (kind === "string") return adwJsonQuote(current);
+      if (kind === "number") return isFinite(current) ? String(current) : "null";
+      if (kind === "boolean") return current ? "true" : "false";
+      if (kind === "undefined" || kind === "function") return null;
+      for (var s=0; s<stack.length; s++) if (stack[s] === current) throw new Error("Cannot serialize cyclic inspection data");
+      stack.push(current);
+      var nextIndent = step ? new Array(depth + 2).join(step) : "";
+      var currentIndent = step ? new Array(depth + 1).join(step) : "";
+      var rows = [];
+      if (current instanceof Array) {
+        for (var a=0; a<current.length; a++) {
+          var encodedItem = encode(current[a], depth + 1);
+          rows.push(encodedItem === null ? "null" : encodedItem);
+        }
+      } else {
+        var keys = [];
+        for (var key in current) if (Object.prototype.hasOwnProperty.call(current, key)) keys.push(key);
+        keys.sort();
+        for (var k=0; k<keys.length; k++) {
+          var encodedValue = encode(current[keys[k]], depth + 1);
+          if (encodedValue !== null) rows.push(adwJsonQuote(keys[k]) + (step ? ": " : ":") + encodedValue);
+        }
+      }
+      stack.pop();
+      var open = current instanceof Array ? "[" : "{";
+      var close = current instanceof Array ? "]" : "}";
+      if (!rows.length) return open + close;
+      return step ? open + "\n" + nextIndent + rows.join(",\n" + nextIndent) + "\n" + currentIndent + close : open + rows.join(",") + close;
+    }
+    return encode(value, 0);
+  }
   function simpleValue(value) {
     if (value === null || value === undefined) return null;
     if (typeof value === "number" || typeof value === "string" || typeof value === "boolean") return value;
@@ -350,7 +419,8 @@ _JSX_INSPECTION_HELPERS = r'''
   function snapshotProperty(prop, depth) {
     var row={name:prop.name,match_name:prop.matchName,property_type:String(prop.propertyType)};
     if (prop.propertyType === PropertyType.PROPERTY) {
-      row.value=simpleValue(prop.value); row.num_keys=prop.numKeys; row.keyframes=[];
+      try { row.value=simpleValue(prop.value); } catch (valueError) { row.value=null; row.value_error=valueError.toString(); }
+      row.num_keys=prop.numKeys; row.keyframes=[];
       for (var k=1;k<=prop.numKeys;k++) { var key={time:prop.keyTime(k),value:simpleValue(prop.keyValue(k))};
         try { key.in_interpolation=String(prop.keyInInterpolationType(k));key.out_interpolation=String(prop.keyOutInterpolationType(k)); } catch (_) {}
         row.keyframes.push(key);
@@ -421,7 +491,18 @@ def generate_build_jsx(
   }}
   function addLayer(comp, layerSpec, assetItems) {{
     var layer;
-    if (layerSpec.kind === "text") layer = comp.layers.addText(layerSpec.text);
+    if (layerSpec.kind === "text") {{
+      layer = comp.layers.addText(layerSpec.text);
+      var sourceText = layer.property("ADBE Text Properties").property("ADBE Text Document");
+      var textDocument = sourceText.value;
+      if (layerSpec.text_font !== undefined && layerSpec.text_font !== null) textDocument.font = layerSpec.text_font;
+      if (layerSpec.text_size !== undefined && layerSpec.text_size !== null) textDocument.fontSize = layerSpec.text_size;
+      if (layerSpec.text_fill !== undefined && layerSpec.text_fill !== null) {{ textDocument.applyFill = true; textDocument.fillColor = layerSpec.text_fill; }}
+      if (layerSpec.text_justification === "left") textDocument.justification = ParagraphJustification.LEFT_JUSTIFY;
+      else if (layerSpec.text_justification === "center") textDocument.justification = ParagraphJustification.CENTER_JUSTIFY;
+      else if (layerSpec.text_justification === "right") textDocument.justification = ParagraphJustification.RIGHT_JUSTIFY;
+      sourceText.setValue(textDocument);
+    }}
     else if (layerSpec.kind === "null") layer = comp.layers.addNull();
     else if (layerSpec.kind === "shape") {{
       layer = comp.layers.addShape();
@@ -429,7 +510,10 @@ def generate_build_jsx(
       var group = contents.addProperty("ADBE Vector Group");
       var vectors = group.property("ADBE Vectors Group");
       var shape = vectors.addProperty(layerSpec.shape === "ellipse" ? "ADBE Vector Shape - Ellipse" : "ADBE Vector Shape - Rect");
-      shape.property("ADBE Vector Shape Size").setValue(layerSpec.size);
+      var sizeMatchName = layerSpec.shape === "ellipse" ? "ADBE Vector Ellipse Size" : "ADBE Vector Rect Size";
+      var sizeProperty = shape.property(sizeMatchName);
+      if (!sizeProperty) throw new Error("Missing AE shape-size property " + sizeMatchName);
+      sizeProperty.setValue(layerSpec.size);
       var fill = vectors.addProperty("ADBE Vector Graphic - Fill");
       fill.property("ADBE Vector Fill Color").setValue(layerSpec.fill.slice(0, 3));
       if (layerSpec.fill.length === 4) fill.property("ADBE Vector Fill Opacity").setValue(layerSpec.fill[3] * 100);
@@ -459,7 +543,7 @@ def generate_build_jsx(
     var report = snapshotProject(project, SPEC.project_id);
     var file = new File(REPORT_OUTPUT); file.encoding="UTF-8";
     if (!file.open("w")) throw new Error("Cannot open report output: " + file.error);
-    file.write(JSON.stringify(report, null, 2)); file.close();
+    file.write(adwStringify(report, 2)); file.close();
   }}
   app.beginUndoGroup("ADW build " + SPEC.project_id);
   try {{
@@ -490,7 +574,12 @@ def generate_build_jsx(
     project.renderQueue.items.add(main);
     writeReport(project);
     project.save(projectOutputFile);
-  }} catch (error) {{ alert("ADW build failed: " + error.toString()); throw error; }}
+  }} catch (error) {{
+    var errorDetail = error.toString();
+    try {{ if (error.line !== undefined) errorDetail += " at line " + error.line; }} catch (_) {{}}
+    try {{ if (error.fileName) errorDetail += " in " + error.fileName; }} catch (_) {{}}
+    alert("ADW build failed: " + errorDetail); throw error;
+  }}
   finally {{ app.endUndoGroup(); }}
 }})();
 '''
@@ -508,7 +597,7 @@ def generate_inspect_jsx(report_output: str | Path) -> str:
   var project=app.project; var projectId=null;
   for(var i=1;i<=project.numItems;i++){{var item=project.item(i);if(item.name.indexOf("__ADW_PROJECT__")===0){{projectId=item.name.substring(15);break;}}}}
   var report=snapshotProject(project,projectId);
-  var file=new File(OUTPUT);file.encoding="UTF-8";if(!file.open("w"))throw new Error("Cannot open report: "+file.error);file.write(JSON.stringify(report,null,2));file.close();
+  var file=new File(OUTPUT);file.encoding="UTF-8";if(!file.open("w"))throw new Error("Cannot open report: "+file.error);file.write(adwStringify(report,2));file.close();
 }})();
 '''
 

@@ -29,6 +29,21 @@ No local After Effects installation was available during implementation. The
 tests therefore establish deterministic schema and script generation only. They
 are not an application compatibility claim.
 
+## AE 2020 compatibility baseline
+
+The core bridge was subsequently qualified against Adobe After Effects 2020
+`17.0.4x59` on Windows. That runtime does not provide a global `JSON` object, so
+generated builders and inspectors include an ES3-compatible deterministic JSON
+serializer. Rectangle and ellipse construction uses the legacy match names
+`ADBE Vector Rect Size` and `ADBE Vector Ellipse Size`. The inspector also records
+a `value_error` instead of aborting when AE exposes a `PropertyValueType.NO_VALUE`
+leaf such as a gradient or outer-glow placeholder.
+
+Text layers support the optional manifest fields `text_font`, `text_size`,
+`text_fill`, and `text_justification` (`left`, `center`, or `right`). These map to
+the native `TextDocument` and remain ordinary editable AE text. Font availability
+and substitution still require inspection in the target workstation.
+
 ## Semantic contract
 
 Every project, scene, layer, marker, effect, and asset has a stable lowercase ID.
@@ -117,10 +132,10 @@ stable identity or ownership.
 
 ## Known limits
 
-The first builder covers the structural core and generic match-name properties;
-fonts/text styling, masks, cameras/lights, complex vector paths, specialized effect
-parameters, interpolation/easing, render templates, and color management require
-explicit schema additions and a tested AE fixture. Inspection currently reports
-items, stable tags, timing, locks, and source paths; a real-AE follow-up should
-expand it to property/keyframe/expression/effect snapshots after confirming DOM
-performance on representative projects.
+The first builder covers the structural core, basic text styling, and generic
+match-name properties; advanced text layout, masks, cameras/lights, complex vector
+paths, specialized effect parameters, interpolation/easing, render templates, and
+color management require explicit schema additions and a tested AE fixture. The
+inspector reports items, stable tags, timing, locks, source paths, property trees,
+keyframes, expressions, and effects; very large projects still require profiling
+and may need an explicit inspection allowlist.
