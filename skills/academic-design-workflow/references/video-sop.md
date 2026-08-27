@@ -19,3 +19,11 @@ focus. Prefer coordinated transforms and short crossfades to unrelated effects.
 Review muted playback, representative stills, pacing, caption collisions, safe
 area, frame rate, resolution, encoded playback, and color shifts.
 
+For After Effects co-authoring, keep a stable-ID semantic manifest outside the
+binary AEP. Generate a new project revision through reviewable JSX, mark every
+managed comp/layer/marker with its stable ID and owner, and let the human edit an
+incremented copy. Before regeneration, compare the human inspection report and
+manifest: preserve human-owned fields, require review for shared fields, and only
+regenerate agent-owned fields. Never patch a production AEP in place. See
+`docs/after-effects-coauthoring.md` for the complete handoff and recovery SOP.
+

@@ -12,6 +12,8 @@ python -m pip install -e .
 adw validate themes/academic-clean.yaml
 adw compile themes/academic-clean.yaml --output generated/academic-clean
 adw styleboard themes/rolling-diffusion.yaml --output generated/styleboards/rolling-diffusion
+adw ae validate examples/after-effects/paper-video.json
+adw ae generate examples/after-effects/paper-video.json --output build/video.jsx --project-output build/video.aep --report-output build/video.ae-report.json
 ```
 
 The compiler creates `theme.json`, `theme.css`, and `matplotlib.json`. The
@@ -43,3 +45,7 @@ JSON, CSS, and Matplotlib artifact for every variant alongside the base tokens.
 
 The Codex skill is in `skills/academic-design-workflow/` and contains the SOP
 for choosing and reviewing each workflow mode.
+
+The source-first After Effects bridge is documented in
+[`docs/after-effects-coauthoring.md`](docs/after-effects-coauthoring.md). It emits
+ExtendScript and semantic diffs; it never parses or patches binary AEP files.
