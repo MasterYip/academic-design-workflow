@@ -55,7 +55,8 @@ ExtendScript and semantic diffs; it never parses or patches binary AEP files.
 
 The optional native Visio layer provides a versioned semantic scene, offline
 validation and stale-safe edit planning, structural VSDX audit/diff, and a
-Windows COM bridge that draws native shapes with glued connectors. It never
-imports SVG/PDF/raster chart content. See the
+Windows COM bridge that draws native shapes with glued connectors. Optional
+manifest-driven AxMath and Office Math paths preserve editable equation objects
+under narrow structural audit gates. See the
 [human-agent Visio SOP](docs/visio-human-agent-workflow.md) and the
 [Hoffman example](examples/visio/README.md).

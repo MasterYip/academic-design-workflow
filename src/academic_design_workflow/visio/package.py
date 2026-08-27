@@ -4,10 +4,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+import struct
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from typing import Any
+from uuid import UUID
+
+
+AXMATH_CLSID = "b18c2bcc-4e79-436a-a2a5-a7f8d25a9a28"
 
 
 def _local(tag: str) -> str:
@@ -20,6 +25,34 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _cfb_root_clsid(blob: bytes) -> str:
+    """Return the root CLSID from an OLE compound-file embedding."""
+    if blob[:8] != bytes.fromhex("D0CF11E0A1B11AE1"):
+        raise ValueError("embedding is not an OLE compound file")
+    sector_size = 1 << struct.unpack_from("<H", blob, 30)[0]
+    first_directory_sector = struct.unpack_from("<I", blob, 48)[0]
+    fat_sector_count = struct.unpack_from("<I", blob, 44)[0]
+    difat = struct.unpack_from("<109I", blob, 76)
+    fat_sector_ids = [value for value in difat if value < 0xFFFFFFFA][:fat_sector_count]
+    fat: list[int] = []
+    for sector_id in fat_sector_ids:
+        offset = (sector_id + 1) * sector_size
+        fat.extend(struct.unpack_from(f"<{sector_size // 4}I", blob, offset))
+    directory = bytearray()
+    sector_id = first_directory_sector
+    visited: set[int] = set()
+    while sector_id < 0xFFFFFFFA and sector_id not in visited:
+        visited.add(sector_id)
+        offset = (sector_id + 1) * sector_size
+        directory.extend(blob[offset : offset + sector_size])
+        sector_id = fat[sector_id]
+    for offset in range(0, len(directory), 128):
+        entry = directory[offset : offset + 128]
+        if len(entry) == 128 and entry[66] == 5:
+            return str(UUID(bytes_le=bytes(entry[80:96])))
+    raise ValueError("OLE compound file has no root storage entry")
 
 
 def _cell_value(shape: ET.Element, name: str) -> str | None:
@@ -100,6 +133,7 @@ def audit_vsdx(
     path: str | Path,
     *,
     allowed_office_math_semantic_ids: tuple[str, ...] = (),
+    allowed_axmath_semantic_ids: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     """Audit VSDX structure without opening Visio or mutating the package."""
     candidate = Path(path)
@@ -137,6 +171,20 @@ def audit_vsdx(
                 if _local(element.tag) == "PageSheet":
                     page_shape_data.update(_shape_data(element))
 
+        embedding_parts = [
+            name
+            for name in names
+            if name.startswith("visio/embeddings/")
+            and "/_rels/" not in name
+            and name.lower().endswith(".bin")
+        ]
+        embedding_clsids: dict[str, str | None] = {}
+        for name in embedding_parts:
+            try:
+                embedding_clsids[name] = _cfb_root_clsid(package.read(name))
+            except (IndexError, KeyError, struct.error, ValueError):
+                embedding_clsids[name] = None
+
     semantic_ids = [shape["semantic_id"] for shape in shapes if shape["semantic_id"]]
     duplicate_semantic_ids = sorted(
         {semantic_id for semantic_id in semantic_ids if semantic_ids.count(semantic_id) > 1}
@@ -150,6 +198,9 @@ def audit_vsdx(
     connectors = [shape for shape in shapes if shape["one_d"] or shape["source"]]
     native_shapes = [shape for shape in shapes if shape["type"] not in {"Group", "Foreign"}]
     allowed_math = set(allowed_office_math_semantic_ids)
+    allowed_axmath = set(allowed_axmath_semantic_ids)
+    if allowed_math & allowed_axmath:
+        raise ValueError("Office Math and AxMath semantic ID allowlists must be disjoint")
     foreign_ids = {shape["semantic_id"] for shape in foreign_shapes if shape["semantic_id"]}
     office_math_exception = bool(allowed_math) and foreign_ids == allowed_math
     if office_math_exception:
@@ -167,13 +218,37 @@ def audit_vsdx(
                 for shape in foreign_shapes
             )
         )
+    axmath_exception = bool(allowed_axmath) and foreign_ids == allowed_axmath
+    if axmath_exception:
+        axmath_exception = (
+            not allowed_math
+            and len(foreign_shapes) == len(allowed_axmath)
+            and foreign_data_records == len(allowed_axmath)
+            and len(media_parts) == len(allowed_axmath)
+            and all(name.lower().endswith(".emf") for name in media_parts)
+            and import_named_parts == media_parts
+            and len(embedding_parts) == len(allowed_axmath)
+            and all(value == AXMATH_CLSID for value in embedding_clsids.values())
+            and all(
+                shape["role"] == "equation"
+                and shape["shape_data"].get("AxMathProgID") == "Equation.AxMath"
+                and shape["shape_data"].get("AxMathCLSID", "").strip("{}").lower()
+                == AXMATH_CLSID
+                and shape["shape_data"].get("SourceText")
+                and shape["shape_data"].get("DisplayLatex")
+                for shape in foreign_shapes
+            )
+        )
     violations = []
     if groups:
         violations.append(f"contains {len(groups)} group records")
-    if (foreign_shapes or foreign_data_records) and not office_math_exception:
+    foreign_exception = office_math_exception or axmath_exception
+    if (foreign_shapes or foreign_data_records) and not foreign_exception:
         violations.append("contains foreign shapes or ForeignData")
-    if (media_parts or import_named_parts) and not office_math_exception:
+    if (media_parts or import_named_parts) and not foreign_exception:
         violations.append("contains media or import/image-named package parts")
+    if embedding_parts and not foreign_exception:
+        violations.append("contains undeclared OLE embeddings")
     if duplicate_semantic_ids:
         violations.append("contains duplicate semantic IDs")
     if len(semantic_ids) != len(shapes):
@@ -194,6 +269,10 @@ def audit_vsdx(
         "foreign_data_records": foreign_data_records,
         "allowed_office_math_semantic_ids": sorted(allowed_math),
         "office_math_exception_applied": office_math_exception,
+        "allowed_axmath_semantic_ids": sorted(allowed_axmath),
+        "axmath_exception_applied": axmath_exception,
+        "embedding_parts": embedding_parts,
+        "embedding_root_clsids": embedding_clsids,
         "media_parts": media_parts,
         "import_or_image_named_parts": import_named_parts,
         "semantic_shape_records": len(semantic_ids),

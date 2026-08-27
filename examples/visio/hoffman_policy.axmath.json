@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "replacements": [
+    {
+      "target_id": "state_head",
+      "equation_id": "axmath_state_head",
+      "latex": "\\hat{x}_0",
+      "source_latex": "\\hat{x}_0",
+      "carrier_text": "State head\n\ninternal plan",
+      "max_width": 0.42,
+      "max_height": 0.18
+    },
+    {
+      "target_id": "action_head",
+      "equation_id": "axmath_action_head",
+      "latex": "\\hat{y}_0\\in\\mathbb{R}^{H\\times29}",
+      "source_latex": "\\hat{y}_0\\in\\mathbb{R}^{H\\times29}",
+      "carrier_text": "Action head\n",
+      "max_width": 0.9,
+      "max_height": 0.2
+    }
+  ]
+}

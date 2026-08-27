@@ -13,6 +13,10 @@ def test_legacy_theme_commands_and_nested_visio_commands_coexist():
     args = root.parse_args(["visio", "validate", "scene.json"])
     assert (args.command, args.visio_command) == ("visio", "validate")
     assert root.parse_args(["visio", "audit", "chart.vsdx"]).visio_command == "audit"
+    audit = root.parse_args(
+        ["visio", "audit", "chart.vsdx", "--allow-axmath-id", "axmath_equation"]
+    )
+    assert audit.allow_axmath_id == ["axmath_equation"]
 
 
 def test_default_bridge_is_repository_local_and_contains_no_import_pipeline():

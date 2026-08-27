@@ -20,3 +20,6 @@ Select based on reading order and explanatory value before visual polish.
 Deliver data or provenance, rendering code, theme/version, dimensions, exports,
 and a caption draft. Do not deliver only a bitmap.
 
+When the requested human edit surface is Visio/VSDX, also read
+[visio-sop.md](visio-sop.md). Do not convert the finished SVG into a deep group
+and call it native editing; reconstruct the semantic scene with stable IDs.
