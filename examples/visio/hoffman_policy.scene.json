@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "scene_id": "hoffman_policy_example",
+  "revision": 1,
+  "page": {
+    "name": "HoffMan native policy example",
+    "coordinate_width": 13.5,
+    "coordinate_height": 7.3,
+    "width_in": 5.5,
+    "height_in": 3.45
+  },
+  "theme": {
+    "font_family": "Arial",
+    "colors": {
+      "canvas": "#F8F8F6",
+      "surface": "#FCFCFB",
+      "surface_subtle": "#ECECEA",
+      "surface_strong": "#5A5A57",
+      "text": "#2E2E2C",
+      "inverse": "#FFFFFF",
+      "border": "#B7B8B4",
+      "connector": "#2F2F2D",
+      "state": "#3E6378",
+      "action": "#820817",
+      "focal": "#E7A12B"
+    }
+  },
+  "shapes": [
+    {
+      "id": "canvas", "role": "canvas", "kind": "rectangle",
+      "x": 0.0, "y": 0.0, "width": 13.5, "height": 7.3, "text": "", "ports": [],
+      "style": {"fill_role": "canvas", "stroke_role": "canvas", "text_role": "text", "line_width_pt": 0, "radius": 0, "font_size_pt": 7}
+    },
+    {
+      "id": "title_rail", "role": "panel_header", "kind": "rounded_rectangle",
+      "x": 0.15, "y": 6.55, "width": 13.2, "height": 0.58,
+      "text": "JOINT STATE-ACTION DIFFUSION POLICY                                      H = 20  •  N = 4  •  d = 256", "ports": [],
+      "style": {"fill_role": "surface_strong", "stroke_role": "surface_strong", "text_role": "inverse", "line_width_pt": 0, "radius": 0.18, "font_size_pt": 8.2, "font_weight": 700}
+    },
+    {
+      "id": "condition_history", "role": "widget", "kind": "rounded_rectangle",
+      "x": 0.55, "y": 5.25, "width": 2.2, "height": 0.78, "text": "Condition history\nN RLObs + task latent",
+      "ports": [{"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "text", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "condition_encoder", "role": "graph_node", "kind": "rounded_rectangle",
+      "x": 3.2, "y": 5.25, "width": 2.25, "height": 0.78, "text": "Condition encoder\nprojection / MLP",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}, {"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "connector", "text_role": "text", "line_width_pt": 0.9, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "condition_memory", "role": "widget", "kind": "rounded_rectangle",
+      "x": 5.9, "y": 5.25, "width": 2.3, "height": 0.78, "text": "condition memory\nc₁   c₂   ⋯   cₙ",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}, {"name": "south", "x": 0.5, "y": 0, "direction_y": -1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "state", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "noisy_state", "role": "widget", "kind": "rounded_rectangle",
+      "x": 0.55, "y": 3.65, "width": 2.15, "height": 0.75, "text": "Noisy state*\nx₁ᵏ   x₂ᵏ   ⋯   xₕᵏ",
+      "ports": [{"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "state", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "noisy_action", "role": "widget", "kind": "rounded_rectangle",
+      "x": 0.55, "y": 2.65, "width": 2.15, "height": 0.75, "text": "Noisy action\ny₁ᵏ   y₂ᵏ   ⋯   yₕᵏ",
+      "ports": [{"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "action", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "embeddings", "role": "graph_node", "kind": "rounded_rectangle",
+      "x": 3.0, "y": 2.85, "width": 1.75, "height": 1.35, "text": "Separate\nembeddings",
+      "ports": [{"name": "west_upper", "x": 0, "y": 0.7, "direction_x": -1}, {"name": "west_lower", "x": 0, "y": 0.3, "direction_x": -1}, {"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "connector", "text_role": "text", "line_width_pt": 0.9, "font_size_pt": 6.5, "font_weight": 700}
+    },
+    {
+      "id": "decoder", "role": "graph_node_focal", "kind": "rounded_rectangle",
+      "x": 5.0, "y": 2.65, "width": 4.2, "height": 1.85, "text": "Interleaved transformer decoder\nx₁   y₁   x₂   y₂   ⋯\nstate: all states; action inputs blocked\naction: causal state + action attention",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}, {"name": "north", "x": 0.5, "y": 1, "direction_y": 1}, {"name": "east_upper", "x": 1, "y": 0.72, "direction_x": 1}, {"name": "east_lower", "x": 1, "y": 0.28, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "focal", "text_role": "text", "line_width_pt": 1.15, "font_size_pt": 5.8, "font_weight": 600}
+    },
+    {
+      "id": "state_head", "role": "graph_node", "kind": "rounded_rectangle",
+      "x": 9.65, "y": 3.62, "width": 1.75, "height": 0.78, "text": "State head\nx̂₀ internal plan",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}],
+      "style": {"fill_role": "surface", "stroke_role": "connector", "text_role": "state", "line_width_pt": 0.9, "font_size_pt": 7.1, "font_weight": 600}
+    },
+    {
+      "id": "action_head", "role": "graph_node", "kind": "rounded_rectangle",
+      "x": 9.65, "y": 2.66, "width": 1.75, "height": 0.78, "text": "Action head\nŷ₀   H × 29",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}],
+      "style": {"fill_role": "surface", "stroke_role": "connector", "text_role": "action", "line_width_pt": 0.9, "font_size_pt": 7.1, "font_weight": 600}
+    },
+    {
+      "id": "reverse_levels", "role": "widget", "kind": "rounded_rectangle",
+      "x": 0.55, "y": 0.62, "width": 2.15, "height": 0.9, "text": "Reverse levels\ntₖ → tᵢ → ⋯ → t₀",
+      "ports": [{"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "text", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "ddim_update", "role": "graph_node", "kind": "rounded_rectangle",
+      "x": 3.15, "y": 0.62, "width": 1.7, "height": 0.9, "text": "DDIM update\n(t_cur, t_prev)",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}, {"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "connector", "text_role": "text", "line_width_pt": 0.9, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "clean_action", "role": "widget", "kind": "rounded_rectangle",
+      "x": 5.35, "y": 0.62, "width": 1.85, "height": 0.9, "text": "Clean action\nŷ₀ horizon",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}, {"name": "east", "x": 1, "y": 0.5, "direction_x": 1}],
+      "style": {"fill_role": "surface", "stroke_role": "border", "text_role": "action", "line_width_pt": 0.7, "font_size_pt": 7.2, "font_weight": 600}
+    },
+    {
+      "id": "pd_target", "role": "widget_focal", "kind": "rounded_rectangle",
+      "x": 7.75, "y": 0.62, "width": 1.85, "height": 0.9, "text": "PD target\nexecute on G1",
+      "ports": [{"name": "west", "x": 0, "y": 0.5, "direction_x": -1}],
+      "style": {"fill_role": "surface", "stroke_role": "focal", "text_role": "text", "line_width_pt": 1.05, "font_size_pt": 7.2, "font_weight": 600}
+    }
+  ],
+  "connectors": [
+    {"id": "condition_to_encoder", "role": "graph_flow", "source": {"shape_id": "condition_history", "port": "east"}, "target": {"shape_id": "condition_encoder", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "encoder_to_memory", "role": "graph_flow", "source": {"shape_id": "condition_encoder", "port": "east"}, "target": {"shape_id": "condition_memory", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "memory_to_decoder", "role": "graph_flow", "source": {"shape_id": "condition_memory", "port": "south"}, "target": {"shape_id": "decoder", "port": "north"}, "route": [{"x": 7.05, "y": 5.25}, {"x": 7.05, "y": 4.5}], "style": {"stroke_role": "connector"}},
+    {"id": "state_to_embeddings", "role": "graph_flow", "source": {"shape_id": "noisy_state", "port": "east"}, "target": {"shape_id": "embeddings", "port": "west_upper"}, "style": {"stroke_role": "connector"}},
+    {"id": "action_to_embeddings", "role": "graph_flow", "source": {"shape_id": "noisy_action", "port": "east"}, "target": {"shape_id": "embeddings", "port": "west_lower"}, "style": {"stroke_role": "connector"}},
+    {"id": "embeddings_to_decoder", "role": "graph_flow", "source": {"shape_id": "embeddings", "port": "east"}, "target": {"shape_id": "decoder", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "decoder_to_state", "role": "graph_flow", "source": {"shape_id": "decoder", "port": "east_upper"}, "target": {"shape_id": "state_head", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "decoder_to_action", "role": "graph_flow", "source": {"shape_id": "decoder", "port": "east_lower"}, "target": {"shape_id": "action_head", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "reverse_to_ddim", "role": "graph_flow", "source": {"shape_id": "reverse_levels", "port": "east"}, "target": {"shape_id": "ddim_update", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "ddim_to_clean", "role": "graph_flow", "source": {"shape_id": "ddim_update", "port": "east"}, "target": {"shape_id": "clean_action", "port": "west"}, "style": {"stroke_role": "connector"}},
+    {"id": "clean_to_pd", "role": "graph_flow", "source": {"shape_id": "clean_action", "port": "east"}, "target": {"shape_id": "pd_target", "port": "west"}, "style": {"stroke_role": "connector"}}
+  ]
+}

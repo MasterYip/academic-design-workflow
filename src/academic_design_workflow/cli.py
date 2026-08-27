@@ -21,6 +21,9 @@ from .after_effects import (
 from .compiler import compile_theme
 from .styleboard import render_styleboards
 from .theme import load_theme
+from .visio.bridge import VisioBridgeError
+from .visio.cli import configure_parser as configure_visio_parser
+from .visio.cli import run as run_visio
 
 
 def parser() -> argparse.ArgumentParser:
@@ -76,6 +79,7 @@ def parser() -> argparse.ArgumentParser:
     ae_render_command.add_argument("--comp")
     ae_render_command.add_argument("--render-settings")
     ae_render_command.add_argument("--output-module")
+    configure_visio_parser(commands)
     return root
 
 
@@ -170,6 +174,17 @@ def main() -> None:
             except AEPreflightError as error:
                 raise SystemExit(f"AE render preflight failed: {error}") from error
             print(json.dumps({"argv": command, "shell": False}, indent=2))
+        return
+    if args.command == "visio":
+        try:
+            run_visio(args)
+        except (
+            FileExistsError,
+            FileNotFoundError,
+            ValueError,
+            VisioBridgeError,
+        ) as error:
+            raise SystemExit(f"adw visio: {error}") from None
         return
     theme = load_theme(args.theme)
     if args.command == "validate":

@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "scene_id": "hoffman_policy_example",
+  "base_scene_sha256": "5ad79dd4382a0da18314b54b148b12675223f3e79fff90293c29b3cbdcff0b17",
+  "edits": [
+    {
+      "target_id": "condition_encoder",
+      "expected_element_sha256": "b9ec3edbdb0cd487f271838e4c74507d0186ace9e25be5f4bfeb10ebb29bf844",
+      "set": {
+        "x": 3.05,
+        "y": 5.18,
+        "width": 2.55,
+        "height": 0.92,
+        "text": "Condition encoder\nprojection / MLP\nreviewed in Visio",
+        "style": {
+          "fill_role": "surface_subtle",
+          "line_width_pt": 1.05
+        }
+      }
+    }
+  ]
+}
