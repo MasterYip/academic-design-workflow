@@ -77,6 +77,18 @@ def configure_parser(commands: argparse._SubParsersAction) -> None:
     audit = subcommands.add_parser("audit", help="inspect VSDX package structure read-only")
     audit.add_argument("vsdx", type=Path)
     audit.add_argument("--output", type=Path)
+    audit.add_argument(
+        "--allow-office-math-id",
+        action="append",
+        default=[],
+        help="allow one exact Word Office Math semantic ID (repeatable)",
+    )
+    audit.add_argument(
+        "--allow-axmath-id",
+        action="append",
+        default=[],
+        help="allow one exact AxMath semantic ID (repeatable)",
+    )
 
     diff = subcommands.add_parser("diff", help="diff two VSDX packages by semantic ID")
     diff.add_argument("before", type=Path)
@@ -191,7 +203,14 @@ def run(args: argparse.Namespace) -> None:
         return
 
     if args.visio_command == "audit":
-        _emit(audit_vsdx(args.vsdx), args.output)
+        _emit(
+            audit_vsdx(
+                args.vsdx,
+                allowed_office_math_semantic_ids=tuple(args.allow_office_math_id),
+                allowed_axmath_semantic_ids=tuple(args.allow_axmath_id),
+            ),
+            args.output,
+        )
         return
 
     if args.visio_command == "diff":

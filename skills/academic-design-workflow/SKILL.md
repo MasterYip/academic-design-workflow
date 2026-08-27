@@ -24,6 +24,7 @@ creating or materially changing a theme. Then read only the reference matching
 the requested output:
 
 - Paper plots or schematics: [references/paper-figure-sop.md](references/paper-figure-sop.md)
+- Native Visio or VSDX co-authoring: [references/visio-sop.md](references/visio-sop.md)
 - Project sites or UI: [references/website-sop.md](references/website-sop.md)
 - Teasers or paper videos: [references/video-sop.md](references/video-sop.md)
 - Reference image to reusable design system: [references/reference-analysis-sop.md](references/reference-analysis-sop.md)
