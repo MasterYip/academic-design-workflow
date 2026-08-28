@@ -7,7 +7,7 @@ from pathlib import Path
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Rectangle
+from matplotlib.patches import FancyBboxPatch, Rectangle
 
 from .compiler import matplotlib_rc
 from .figures import arrow, box, compound_node, panel, semantic_row, styled_shape, token_row
@@ -323,6 +323,125 @@ def website(theme: Theme):
     return fig
 
 
+def website_hoffman(theme: Theme):
+    """Hoffman web specimen: cinematic hero followed by a light academic section."""
+    fig = _setup(theme, "Project website UI language", "04")
+    ax = fig.add_axes([0.045, 0.08, 0.92, 0.78])
+    ax.set(xlim=(0, 16), ylim=(0, 9))
+    ax.axis("off")
+
+    hero_floor = 3.45
+    ax.add_patch(Rectangle((0, hero_floor), 16, 9 - hero_floor,
+                           facecolor=theme.color_value("hero_deep"), linewidth=0, zorder=-5))
+    ax.add_patch(Rectangle((0, 0), 16, hero_floor,
+                           facecolor=theme.color_value("canvas"), linewidth=0, zorder=-5))
+
+    # A full-bleed media field stays unframed; quiet geometry preserves a calm text zone.
+    ax.add_patch(Rectangle((8.55, hero_floor), 7.45, 9 - hero_floor,
+                           facecolor=theme.color_value("hero_mid"), linewidth=0, zorder=-4))
+    horizon_y = 4.18
+    for x in np.linspace(9.05, 15.75, 7):
+        ax.plot([12.65, x], [6.0, horizon_y], color=theme.color_value("hero_light"),
+                linewidth=0.34, alpha=0.72, zorder=-2)
+    for y in np.linspace(horizon_y, 5.75, 5):
+        ax.plot([8.9, 15.75], [y, y], color=theme.color_value("hero_light"),
+                linewidth=0.34, alpha=0.58, zorder=-2)
+
+    # Abstract robot silhouette: evidence of media placement, not a decorative illustration.
+    robot = theme.color_value("hero_light")
+    ax.add_patch(plt.Circle((12.65, 7.15), 0.34, facecolor=robot, edgecolor="none", zorder=0))
+    ax.add_patch(FancyBboxPatch((12.28, 5.75), 0.74, 1.24,
+                               boxstyle="round,pad=0,rounding_size=0.20",
+                               facecolor=robot, edgecolor="none", zorder=0))
+    ax.plot([12.36, 11.72], [6.55, 5.35], color=robot, linewidth=9,
+            solid_capstyle="round", zorder=0)
+    ax.plot([12.93, 13.50], [6.55, 5.42], color=robot, linewidth=9,
+            solid_capstyle="round", zorder=0)
+    ax.plot([12.48, 12.12], [5.78, 4.35], color=robot, linewidth=10,
+            solid_capstyle="round", zorder=0)
+    ax.plot([12.84, 13.24], [5.78, 4.35], color=robot, linewidth=10,
+            solid_capstyle="round", zorder=0)
+    ax.text(15.38, 4.14, "LOOPING HERO MEDIA", ha="right", va="bottom", fontsize=5.8,
+            fontweight="bold", color=theme.color_value("text_inverse_quiet"))
+
+    ax.text(0.72, 8.46, "Hoff", fontsize=15.5, fontweight="bold", va="center",
+            color=theme.color_value("text_inverse"))
+    ax.text(1.70, 8.46, "Man", fontsize=15.5, fontweight="bold", va="center",
+            color=theme.color_value("data_quaternary"))
+    ax.text(2.80, 8.43, "HIERARCHICAL ACTION-LEVEL DIFFUSION", fontsize=5.4,
+            va="center", color=theme.color_value("text_inverse_muted"))
+    for i, item in enumerate(("Method", "Results", "Media", "Paper")):
+        ax.text(10.05 + i * 1.18, 8.45, item, fontsize=6.3,
+                color=theme.color_value("text_inverse_secondary"))
+
+    ax.text(0.72, 7.65, "ACADEMIC PAPER · WORKING DRAFT", fontsize=5.8,
+            fontweight="bold", color=theme.color_value("data_quaternary"))
+    ax.text(0.72, 7.15, "Predictive rolling-\ndenoising planning\nfor humanoid control.",
+            fontsize=19.5, fontweight="bold", va="top", linespacing=0.96,
+            color=theme.color_value("text_inverse"))
+    ax.text(0.74, 4.93,
+            "Future state and action trajectories remain jointly conditioned\n"
+            "on deployable observation history and optional task context.",
+            fontsize=7.1, va="top", linespacing=1.35,
+            color=theme.color_value("text_inverse_secondary"))
+    styled_shape(ax, theme, (0.74, 3.88, 1.76, 0.54), style="hero_button_primary",
+                 title="METHOD")
+    ax.add_patch(FancyBboxPatch((2.66, 3.88), 1.52, 0.54,
+                               boxstyle="round,pad=0,rounding_size=0.27",
+                               facecolor="none", edgecolor=theme.color_value("border_inverse"),
+                               linewidth=0.65, zorder=2))
+    ax.text(3.42, 4.15, "MEDIA", ha="center", va="center", fontsize=6.2,
+            fontweight="bold", color=theme.color_value("text_inverse"), zorder=4)
+
+    # Semantic rail bridges the hero message to the paper-like method section.
+    rail_y = 3.57
+    ax.plot([5.0, 11.05], [rail_y, rail_y], color=theme.color_value("border_inverse"),
+            linewidth=0.55, zorder=2)
+    styled_shape(ax, theme, (5.14, rail_y - 0.13, 1.48, 0.27),
+                 style="hero_signal_state", title="STATE", zorder=3)
+    styled_shape(ax, theme, (7.40, rail_y - 0.15, 1.82, 0.31),
+                 style="hero_signal_core", title="PRDP", zorder=3)
+    styled_shape(ax, theme, (10.00, rail_y - 0.13, 1.48, 0.27),
+                 style="hero_signal_action", title="ACTION", zorder=3)
+
+    ax.text(0.72, 2.94, "METHOD OVERVIEW", fontsize=5.8, fontweight="bold",
+            color=theme.color_value("data_quaternary"))
+    ax.text(0.72, 2.48, "One policy, three control interfaces.", fontsize=14.5,
+            fontweight="bold", color=theme.color_value("text_primary"))
+    ax.text(0.72, 1.88,
+            "Proprioception closes the loop. CFG supplies task semantics.\n"
+            "CG steers deployment-time behavior without a separate tracker.",
+            fontsize=6.7, linespacing=1.35, color=theme.color_value("text_secondary"))
+
+    phases = (("CONDITION", True), ("DENOISE", False), ("SAMPLE", False))
+    for i, (label, active) in enumerate(phases):
+        x = 0.72 + i * 1.55
+        if active:
+            styled_shape(ax, theme, (x, 0.73, 1.38, 0.46), style="phase_tab_active",
+                         title=label)
+        else:
+            ax.add_patch(Rectangle((x, 0.73), 1.38, 0.46,
+                                   facecolor=theme.color_value("surface"),
+                                   edgecolor=theme.color_value("border"), linewidth=0.45))
+            ax.text(x + 0.69, 0.96, label, ha="center", va="center", fontsize=5.9,
+                    fontweight="bold", color=theme.color_value("text_secondary"))
+
+    ax.plot([7.25, 15.25], [2.76, 2.76], color=theme.color_value("data_quaternary"),
+            linewidth=1.05)
+    ax.text(7.25, 2.44, "ROLLING-DENOISING SYSTEM", fontsize=7.2, fontweight="bold",
+            color=theme.color_value("text_primary"))
+    semantic_row(ax, theme, (7.25, 1.55, 2.72, 0.66), ("State", "Noise"), active_index=0)
+    compound_node(ax, theme, (10.72, 1.37, 2.55, 1.10), title="Predict",
+                  detail="condition · update", badge="PRDP", focal=True,
+                  port_labels=("z", "out"))
+    semantic_row(ax, theme, (14.02, 1.55, 1.30, 0.66), ("Action",), active_index=0)
+    arrow(ax, theme, (10.02, 1.88), (10.55, 1.88), style="graph_flow")
+    arrow(ax, theme, (13.35, 1.88), (13.85, 1.88), style="graph_flow")
+    ax.text(7.25, 0.73, "Light sections retain publication density, square rhythm, and explicit evidence.",
+            fontsize=6.0, color=theme.color_value("text_secondary"))
+    return fig
+
+
 def _particles(ax, theme: Theme, seed: int, count: int = 650) -> None:
     rng = np.random.default_rng(seed)
     angle = rng.uniform(0, 2 * np.pi, count); radius = np.clip(rng.normal(2.6, 1.05, count), 0.2, 5.0)
@@ -422,6 +541,10 @@ def render_styleboards(theme: Theme, output_dir: str | Path) -> list[Path]:
         builders = (("01-foundations", foundations, paper_theme), ("02-charts", charts, paper_theme),
                     ("03-framework", framework_intact, paper_theme), ("04-website", website_intact, web_theme),
                     ("05-video", video_intact, video_theme))
+    elif theme.meta.name == "hoffman":
+        builders = (("01-foundations", foundations, paper_theme), ("02-charts", charts, paper_theme),
+                    ("03-framework", framework, paper_theme), ("04-website", website_hoffman, web_theme),
+                    ("05-video", video, video_theme))
     else:
         builders = (("01-foundations", foundations, paper_theme), ("02-charts", charts, paper_theme),
                     ("03-framework", framework, paper_theme), ("04-website", website, web_theme),

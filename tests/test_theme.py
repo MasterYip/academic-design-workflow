@@ -28,7 +28,7 @@ def test_hoffman_theme_exposes_semantic_panel_widget_and_graph_patterns():
     theme = load_theme(ROOT / "themes" / "hoffman.yaml")
 
     assert theme.meta.name == "hoffman"
-    assert theme.meta.version == 2
+    assert theme.meta.version == 3
     assert theme.shape.vocabulary["panel_header"].geometry == "rounded_top_rectangle"
     assert {
         "panel_container",
@@ -52,6 +52,20 @@ def test_hoffman_theme_exposes_semantic_panel_widget_and_graph_patterns():
     assert theme.shape.vocabulary["process_bar"].fill == "surface_strong"
     assert theme.shape.strokes["emphasis"].width_pt > theme.shape.strokes["boundary"].width_pt
     assert theme.shape.strokes["boundary"].width_pt > theme.shape.strokes["hairline"].width_pt
+
+    web = theme.for_variant("web")
+    assert web.color_value("hero_deep") == "#171817"
+    assert web.color_value("text_inverse_secondary") == "#D9DAD6"
+    assert web.color.roles["data_primary"].on_color == "text_inverse"
+    assert web.color.roles["negative"].on_color == "text_inverse"
+    assert web.shape.vocabulary["hero_signal_action"].fill == "negative"
+    assert web.shape.vocabulary["hero_button_quiet"].fill == "none"
+    assert web.web.content_width_px == 1420
+    assert web.motion.curves["enter"].duration_ms == 560
+
+    paper = theme.for_variant("paper")
+    assert paper.color_value("canvas") == "#F8F8F6"
+    assert "hero_deep" not in paper.color.roles
 
     source = load_theme(ROOT / "themes" / "rolling-diffusion.yaml")
     assert source.shape.vocabulary["panel_header"].geometry == "clipped_header"

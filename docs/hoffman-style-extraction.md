@@ -1,12 +1,37 @@
 # Hoffman style extraction
 
-The `hoffman` theme is an original derivative of `rolling-diffusion`. It uses the
-user-supplied technical diagram only to identify reusable visual principles; it
-does not reproduce the diagram's scientific content, labels, or composition. The
-reference's license and original provenance were not provided.
+The `hoffman` theme is an original derivative of `rolling-diffusion`. It uses
+user-supplied technical diagrams and the Hoffman website demo only to identify
+reusable visual principles; it does not reproduce a reference's scientific
+content or composition. Reference provenance remains external to this repository.
 
-Version 2 introduces the compound widget/node grammar and layered data-store
-silhouette; this is a deliberate visual breaking change from the simpler first proof.
+Version 3 retains the version 2 paper grammar and adds an explicit website
+language: a full-bleed near-black media hero followed by compact light academic
+sections. This is a web-variant extension, not a dark-theme replacement for paper
+figures.
+
+## Website evidence
+
+The visual audit used `HoffMan WebTpl.mp4`, sampled at three-second intervals
+from 0 to 24 seconds. The supplied file is 1920 x 1080, about 25.03 seconds long,
+and has SHA-256
+`73E54D26F81080F3B95323C45C2EC1DDB58E0577DD5392709EB25248C2515446`.
+The current `hoffman.github.io` implementation at commit `e88b303` was inspected
+only to confirm exact token values already visible in the rendered demo.
+
+The audit found two deliberately coordinated modes rather than one uniformly
+dark site:
+
+- The opening hero is a spatially stable, full-bleed robot-video field. White and
+  quiet-gray typography occupies a protected reading zone; orange marks the main
+  command; muted blue and burgundy preserve state/action semantics.
+- Subsequent method and evidence sections return to the pale academic canvas,
+  charcoal integrated rails, thin orange rules, compact type, and dense alignment
+  used by paper figures.
+- Navigation changes contrast at the dark/light boundary instead of floating in
+  a permanently dark shell.
+- Entry motion is restrained and directional, while semantic animation follows
+  established signal rails. Reduced motion uses a crossfade.
 
 ## Observations
 
@@ -45,6 +70,15 @@ silhouette; this is a deliberate visual breaking change from the simpler first p
 - The inherited muted-blue/orange/burgundy signal roles remain restrained against
   a predominantly neutral field. Focal state uses both an orange boundary and a
   stronger component role, so emphasis survives grayscale.
+- The `web` variant adds `hero_deep`, `hero_mid`, an inverse text ladder, a
+  readable dark-surface blue, and quiet inverse borders. These roles are scoped to
+  web so paper output continues to resolve the original pale canvas.
+- `hero_field`, `hero_media`, primary/quiet hero buttons, and state/core/action
+  signal shapes encode the dark opening. `phase_tab_active` carries the compact
+  square editorial rhythm after the hero.
+- Web layout uses a 1420 px content width, 1080/820/520 px responsive boundaries,
+  and restrained 4/12/24 px radii. The deliberate entry duration is 560 ms and
+  ordinary updates remain 220 ms.
 
 ## Usage
 
@@ -62,11 +96,10 @@ styled_shape(ax, theme, (0.5, 0.6, 5.0, 0.5), style="process_bar",
              title="PROCESS STAGE")
 ```
 
-The revised foundations proof follows the installed frontend art-direction skill
-only at the composition level: one dominant miniature system, restrained accent,
-and hierarchy driven by scale, spacing, alignment, and contrast. Landing-page
-hero, marketing copy, motion, and generic card patterns are intentionally not
-transferred into this academic component board.
+The website proof now demonstrates the dark-media/light-editorial boundary while
+the foundations proof remains an academic component board. The theme does not
+transfer marketing copy, decorative card grids, or dark surfaces into paper
+figures.
 
 Generate the complete proof with:
 

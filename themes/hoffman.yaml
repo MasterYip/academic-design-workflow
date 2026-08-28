@@ -2,16 +2,18 @@ extends: rolling-diffusion.yaml
 
 meta:
   name: hoffman
-  version: 2
-  description: Restrained Hoffman technical storytelling with integrated panel rails, compact semantic widgets, and an explicit graph grammar.
+  version: 3
+  description: Restrained Hoffman technical storytelling with light academic surfaces, a cinematic dark web hero, integrated panel rails, compact semantic widgets, and an explicit graph grammar.
   intent:
     - Organize Hoffman system explanations into calm, clearly bounded stages with strong reading order.
     - Use full-width charcoal title rails with rounded top corners as an integrated part of each panel.
     - Distinguish observations, actions, latent state, ports, and focal computation through reusable semantic patterns.
+    - Pair an immersive full-bleed robot-video hero with dense light editorial method sections at an explicit surface boundary.
   avoid:
     - Clipped or trapezoidal panel title rails, detached title badges, and ornamental header geometry.
     - Reproducing any reference diagram's scientific content, wording, or composition.
     - Encoding important graph roles with hue alone or inventing local colors outside theme tokens.
+    - Applying the dark hero palette to every academic section or turning the project site into a generic product landing page.
 
 color:
   roles:
@@ -175,3 +177,49 @@ shape:
       padding: [0.10, 0.12]
       shadow: none
       emphasis: normal
+
+web:
+  content_width_px: 1420
+  breakpoints_px: {small: 520, medium: 820, large: 1080}
+  radius_scale_px: {small: 4, medium: 12, large: 24, pill: 999}
+  focus_ring: {color: data_primary, width_px: 3, offset_px: 3, opacity: 0.65}
+  transitions_ms: {instant: 0, fast: 140, normal: 220, deliberate: 560}
+
+motion:
+  principles:
+    - Keep the full-bleed hero media spatially stable while text and controls enter in one restrained sequence.
+    - Reveal method content by section and preserve the paper-like top-to-bottom reading order after the hero.
+    - Animate semantic signal flow along established state, policy, and action rails instead of moving whole diagrams.
+    - Change navigation contrast only at an explicit dark-to-light section boundary and always provide a reduced-motion path.
+  curves:
+    enter: {duration_ms: 560, easing: "cubic-bezier(0.22, 1, 0.36, 1)", distance_px: 16, opacity_from: 0.0}
+    update: {duration_ms: 220, easing: "cubic-bezier(0.4, 0, 0.2, 1)", distance_px: 6, opacity_from: 0.65}
+    exit: {duration_ms: 160, easing: "cubic-bezier(0.4, 0, 1, 1)", distance_px: 6, opacity_from: 1.0}
+  reduced_motion: crossfade
+
+variants:
+  paper: {}
+  web:
+    color:
+      roles:
+        data_primary: {on_color: text_inverse}
+        negative: {on_color: text_inverse}
+        hero_deep: {value: "#171817", usage: "Full-bleed robot-video hero fallback and deepest media wells"}
+        hero_mid: {value: "#262725", usage: "Hero controls, media placeholders, and dark evidence surfaces"}
+        hero_light: {value: "#676A66", usage: "Quiet depth cue and inactive dark-surface structure"}
+        text_inverse_strong: {value: "#E2E3DF", usage: "Primary supporting text over dark hero media"}
+        text_inverse_secondary: {value: "#D9DAD6", usage: "Hero deck copy and dark-section descriptions"}
+        text_inverse_muted: {value: "#BBBCB8", usage: "Authorship, metadata, and secondary dark-surface labels"}
+        text_inverse_quiet: {value: "#A8A9A5", usage: "Inactive dark-surface guides and signal-rail structure"}
+        border_inverse: {value: "#777874", usage: "Outlined controls and quiet boundaries over hero media"}
+        data_primary_readable: {value: "#9AB4C2", usage: "Readable blue-grey annotation on deep media"}
+    shape:
+      vocabulary:
+        hero_field: {geometry: rectangle, fill: hero_deep, fill_opacity: 1.0, stroke: {color: hero_deep, width_pt: 0.0, style: solid, cap: butt, join: round}, radius: 0.0, padding: [0.0, 0.0], shadow: none, emphasis: strong}
+        hero_media: {geometry: rounded_rectangle, fill: hero_mid, fill_opacity: 1.0, stroke: {color: border_inverse, width_pt: 0.55, style: solid, cap: round, join: round}, radius: 0.04, padding: [0.10, 0.14], shadow: none, emphasis: quiet}
+        hero_button_primary: {geometry: capsule, fill: data_quaternary, fill_opacity: 1.0, stroke: {color: data_quaternary, width_pt: 0.0, style: solid, cap: round, join: round}, radius: 0.18, padding: [0.06, 0.14], shadow: none, emphasis: strong}
+        hero_button_quiet: {geometry: capsule, fill: none, fill_opacity: 1.0, stroke: {color: border_inverse, width_pt: 0.65, style: solid, cap: round, join: round}, radius: 0.18, padding: [0.06, 0.14], shadow: none, emphasis: normal}
+        hero_signal_state: {geometry: capsule, fill: data_primary, fill_opacity: 1.0, stroke: {color: data_primary, width_pt: 0.0, style: solid, cap: round, join: round}, radius: 0.16, padding: [0.05, 0.12], shadow: none, emphasis: normal}
+        hero_signal_core: {geometry: capsule, fill: surface, fill_opacity: 1.0, stroke: {color: data_quaternary, width_pt: 0.75, style: solid, cap: round, join: round}, radius: 0.16, padding: [0.05, 0.12], shadow: none, emphasis: strong}
+        hero_signal_action: {geometry: capsule, fill: negative, fill_opacity: 1.0, stroke: {color: negative, width_pt: 0.0, style: solid, cap: round, join: round}, radius: 0.16, padding: [0.05, 0.12], shadow: none, emphasis: strong}
+        phase_tab_active: {geometry: rectangle, fill: surface_strong, fill_opacity: 1.0, stroke: {color: border, width_pt: 0.45, style: solid, cap: butt, join: round}, radius: 0.0, padding: [0.08, 0.14], shadow: none, emphasis: strong}

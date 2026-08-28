@@ -27,7 +27,8 @@ Included themes:
 - `rolling-diffusion`: extracted from user-provided rolling-diffusion figures;
   charcoal clipped panels, neutral machinery, and vivid semantic signal colors.
 - `hoffman`: a rolling-diffusion derivative with integrated full-width rounded-top
-  panel rails plus reusable widget, graph-node, port, and connector patterns.
+  panel rails, reusable graph patterns, and a scoped dark-media/light-editorial
+  website variant derived from the Hoffman demo.
 - `intact`: extracted from user-provided INTACT references; pale blue/blush,
   math-forward paper diagrams plus a dark blue/white/coral presentation identity.
 
